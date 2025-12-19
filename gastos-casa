@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gastos Juan y Tania</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root { --juan: #2563eb; --tania: #db2777; --bg: #f8fafc; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; color: #1e293b; }
+        h3 { text-align: center; margin-top: 20px; color: #334155; }
+        .tabs { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #e2e8f0; z-index: 100; }
+        .tab-btn { flex: 1; padding: 15px 5px; border: none; background: none; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; cursor: pointer; }
+        .tab-btn.active { color: var(--juan); border-top: 4px solid var(--juan); background: #f1f5f9; }
+        .container { padding: 15px; display: none; max-width: 500px; margin: auto; }
+        .container.active { display: block; }
+        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #475569; }
+        select, input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 16px; appearance: none; background-color: #fff; }
+        button { width: 100%; padding: 14px; margin-bottom: 10px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; transition: opacity 0.2s; }
+        .btn-juan { background: var(--juan); color: white; }
+        .btn-tania { background: var(--tania); color: white; }
+        .balance-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-size: 15px; }
+        .resultado { font-size: 1.1rem; font-weight: bold; text-align: center; margin-top: 20px; padding: 20px; border-radius: 12px; line-height: 1.4; }
+        .debe-juan { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .debe-tania { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        hr { border: 0; border-top: 2px dashed #e2e8f0; margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+<div id="DIARIOS" class="container active">
+    <h3>Gastos Diarios (50/50)</h3>
+    <div class="card">
+        <label>¿Qué se compró?</label>
+        <select id="item-diario"></select>
+        <label>Monto en $</label>
+        <input type="number" id="monto-diario" inputmode="decimal" placeholder="Ej: 500">
+        <button class="btn-juan" onclick="guardarGasto('DIARIOS', 'JUAN')">PAGÓ JUAN</button>
+        <button class="btn-tania" onclick="guardarGasto('DIARIOS', 'TANIA')">PAGÓ TANIA</button>
+    </div>
+</div>
+
+<div id="MENSUALES" class="container">
+    <h3>Gastos Mensuales (50/50)</h3>
+    <div class="card">
+        <label>Seleccionar Servicio</label>
+        <select id="item-mensual"></select>
+        <label>Monto en $</label>
+        <input type="number" id="monto-mensual" inputmode="decimal" placeholder="Monto abonado">
+        <button class="btn-juan" onclick="guardarGasto('MENSUALES', 'JUAN')">PAGÓ JUAN</button>
+        <button class="btn-tania" onclick="guardarGasto('MENSUALES', 'TANIA')">PAGÓ TANIA</button>
+    </div>
+</div>
+
+<div id="JC" class="container">
+    <h3>Gastos Solo JC (100% Juan)</h3>
+    <div class="card">
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Estos gastos son responsabilidad total de Juan hacia Tania.</p>
+        <label>Ítem personal</label>
+        <select id="item-jc"></select>
+        <label>Monto en $</label>
+        <input type="number" id="monto-jc" inputmode="decimal" placeholder="Monto">
+        <button class="btn-tania" onclick="guardarGasto('JC', 'TANIA')">PAGÓ TANIA (Anotar deuda)</button>
+    </div>
+</div>
+
+<div id="BALANCE" class="container">
+    <h3>Balance Mensual</h3>
+    <div class="card" id="resumen-balance">
+        </div>
+    <button style="background: #64748b; color: white;" onclick="calcularBalance()">🔄 Actualizar Balance</button>
+</div>
+
+<nav class="tabs">
+    <button class="tab-btn active" onclick="showTab('DIARIOS', this)">Diarios</button>
+    <button class="tab-btn" onclick="showTab('MENSUALES', this)">Mensuales</button>
+    <button class="tab-btn" onclick="showTab('JC', this)">Solo JC</button>
+    <button class="tab-btn" onclick="showTab('BALANCE', this)">Balance</button>
+</nav>
+
+<script>
+    // 1. TU CONFIGURACIÓN REAL DE FIREBASE
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDlHjKXf33pCEznyLAmFrTDXVPevrHe9Q",
+      authDomain: "gastoscasa-d8bc2.firebaseapp.com",
+      databaseURL: "https://gastoscasa-d8bc2-default-rtdb.firebaseio.com",
+      projectId: "gastoscasa-d8bc2",
+      storageBucket: "gastoscasa-d8bc2.firebasestorage.app",
+      messagingSenderId: "749635992986",
+      appId: "1:749635992986:web:7916d888f54eb5c3ab0e23",
+      measurementId: "G-PHML1K224T"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 2. LISTAS PROPORCIONADAS
+    const listas = {
+        diarios: ["AGUA", "AUTO GASTOS", "AVICOLA", "BOLSAS", "CARNICERIA", "CASA VARIOS", "COMBUSTIBLE", "COMIDAS AFUERA", "DENTISTA", "EMPANADAS", "FARMACIA", "FCA. PASTAS", "FERIA PAPEL/CAFE", "FERIA VARIOS", "FERIA VERDURA", "FERRETERIA", "GASTOS ARTIGAS", "GATA COMIDA-PIEDRAS", "LA MOLIENDA", "LAVANDERIA", "PANADERIA", "PANADERIA S/G", "PESCADERIA", "PIZZA", "PROPINAS", "REGALOS", "SUPERGAS", "SUPERMERCADO", "VARIOS", "VERDULERIA", "VETERINARIA EXTRAS"],
+        mensuales: ["ELECTRICIDAD", "ESPAÑOLA MOVIL", "GASTOS COMUNES DOLARES", "GASTOS COMUNES PESOS", "HBO", "INTERNET", "NETFLIX", "OLLA LEO FA", "SERVICIO FUNEBRE", "VETERINARIA", "COSTO TARJETA BROU REC. 1/3", "COSTO TARJETA BROU REC. 2/3", "COSTO TARJETA BROU REC. 3/3", "COSTO TARJETA ITAU 1/3", "COSTO TARJETA ITAU 2/3", "COSTO TARJETA ITAU 3/3", "COSTO TARJETA OCA 1/3", "COSTO TARJETA OCA 2/3", "COSTO TARJETA OCA 3/3", "MANTENIMIENTO AUTO 1/1", "MANTENIMIENTO AUTO 1/3", "MANTENIMIENTO AUTO 2/3", "MANTENIMIENTO AUTO 3/3", "CONTRIBUCION INM. JULIO", "CONTRIBUCION INM. MARZO", "CONTRIBUCION INM. NOVIEMBRE", "IMP. PRIMARIA 1/1", "IMP. PRIMARIA MAYO", "IMP. PRIMARIA AGOSTO", "IMP. PRIMARIA OCTUBRE", "IMP. PUERTA FEBRERO", "IMP. PUERTA ABRIL", "IMP. PUERTA JUNIO", "IMP. PUERTA AGOSTO", "IMP. PUERTA OCTUBRE", "IMP. PUERTA DICIEMBRE", "PATENTE RODADOS 1/1", "SEGURO CASA Y AUTO 1/1"],
+        jc: ["EL TUNEL", "LA MOLIENDA", "CLUB AEBU", "MOVILES", "MEDICAMENTOS ESP."]
+    };
+
+    function cargarListas() {
+        const mesActual = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date()).toUpperCase();
+        
+        // Cargar Diarios
+        const selDiario = document.getElementById('item-diario');
+        listas.diarios.sort().forEach(item => {
+            selDiario.innerHTML += `<option value="${item}">${item}</option>`;
+        });
+        
+        // Cargar Mensuales con Filtro de Mes
+        const selMensual = document.getElementById('item-mensual');
+        const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+        listas.mensuales.sort().forEach(item => {
+            const mesEnItem = meses.find(m => item.includes(m));
+            if (!mesEnItem || item.includes(mesActual)) {
+                selMensual.innerHTML += `<option value="${item}">${item}</option>`;
+            }
+        });
+
+        // Cargar JC
+        const selJC = document.getElementById('item-jc');
+        listas.jc.sort().forEach(item => {
+            selJC.innerHTML += `<option value="${item}">${item}</option>`;
+        });
+    }
+
+    // GUARDAR GASTOS
+    function guardarGasto(tipo, pagador) {
+        const item = document.getElementById(`item-${tipo.toLowerCase()}`).value;
+        const montoInput = document.getElementById(`monto-${tipo.toLowerCase()}`);
+        const monto = parseFloat(montoInput.value);
+        const fecha = new Date();
+        const mesAnio = `${fecha.getMonth() + 1}-${fecha.getFullYear()}`;
+
+        if (!monto || monto <= 0) return alert("Por favor ingresa un monto válido.");
+
+        // Guardar en la base de datos
+        db.ref(`gastos/${mesAnio}`).push({
+            tipo, item, monto, pagador, fecha: fecha.toISOString()
+        }).then(() => {
+            alert("✅ Gasto anotado correctamente.");
+            montoInput.value = "";
+        }).catch(err => alert("Error al guardar: " + err.message));
+    }
+
+    // CALCULAR BALANCE
+    function calcularBalance() {
+        const fecha = new Date();
+        const mesAnio = `${fecha.getMonth() + 1}-${fecha.getFullYear()}`;
+        const mesesNombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        
+        db.ref(`gastos/${mesAnio}`).once('value', (snapshot) => {
+            let j50 = 0; // Lo que pagó Juan compartido
+            let t50 = 0; // Lo que pagó Tania compartido
+            let totalJC = 0; // Deuda 100% de Juan
+
+            snapshot.forEach(child => {
+                const g = child.val();
+                if (g.tipo === 'JC') {
+                    totalJC += g.monto;
+                } else {
+                    if (g.pagador === 'JUAN') j50 += g.monto;
+                    if (g.pagador === 'TANIA') t50 += g.monto;
+                }
+            });
+
+            const totalCompartido = j50 + t50;
+            const cuota = totalCompartido / 2;
+            const deudaJuan = (cuota - j50) + totalJC;
+
+            const resDiv = document.getElementById('resumen-balance');
+            resDiv.innerHTML = `
+                <p style="text-align:center; font-weight:bold;">${mesesNombres[fecha.getMonth()]} ${fecha.getFullYear()}</p>
+                <div class="balance-item"><span>Juan pagó (50/50):</span> <strong>$${j50.toFixed(0)}</strong></div>
+                <div class="balance-item"><span>Tania pagó (50/50):</span> <strong>$${t50.toFixed(0)}</strong></div>
+                <div class="balance-item"><span>Gastos SOLO JC (100%):</span> <strong>$${totalJC.toFixed(0)}</strong></div>
+                <hr>
+                <div class="resultado ${deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}">
+                    ${deudaJuan > 0 
+                        ? `JUAN debe pagarle a TANIA:<br><span style="font-size:24px">$${deudaJuan.toFixed(0)}</span>` 
+                        : `TANIA debe pagarle a JUAN:<br><span style="font-size:24px">$${Math.abs(deudaJuan).toFixed(0)}</span>`}
+                </div>
+            `;
+        });
+    }
+
+    // CAMBIO DE PESTAÑAS
+    function showTab(id, btn) {
+        document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+        if(id === 'BALANCE') calcularBalance();
+    }
+
+    window.onload = cargarListas;
+</script>
+
+</body>
+</html>
