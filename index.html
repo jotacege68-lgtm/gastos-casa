@@ -7,51 +7,49 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --juan: #2563eb; --tania: #db2777; --bg: #f1f5f9; --header-h: 60px; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding-top: calc(var(--header-h) + 15px); color: #1e293b; }
+        :root { --juan: #2563eb; --tania: #db2777; --bg: #f1f5f9; --header-h: 75px; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding-top: calc(var(--header-h) + 20px); color: #1e293b; }
         
-        /* Menú Superior Grande */
-        .tabs { position: fixed; top: 0; width: 100%; background: white; display: flex; height: var(--header-h); box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1000; overflow-x: auto; }
-        .tab-btn { flex: 1; min-width: 80px; border: none; background: none; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; cursor: pointer; border-bottom: 4px solid transparent; transition: 0.3s; }
-        .tab-btn.active { color: var(--juan); border-bottom: 4px solid var(--juan); background: #f8fafc; }
+        /* Menú Superior Muy Grande */
+        .tabs { position: fixed; top: 0; width: 100%; background: white; display: flex; height: var(--header-h); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; overflow-x: auto; white-space: nowrap; }
+        .tab-btn { flex: 1; min-width: 90px; border: none; background: none; font-size: 13px; font-weight: 900; color: #94a3b8; text-transform: uppercase; cursor: pointer; border-bottom: 6px solid transparent; padding: 0 5px; }
+        .tab-btn.active { color: var(--juan); border-bottom: 6px solid var(--juan); background: #f8fafc; }
 
         .container { padding: 15px; display: none; max-width: 500px; margin: auto; }
         .container.active { display: block; }
-        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .card { background: white; padding: 25px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         
-        label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; color: #475569; }
-        select, input { width: 100%; padding: 14px; margin-bottom: 20px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
+        label { display: block; margin-bottom: 10px; font-size: 16px; font-weight: 800; color: #334155; }
+        select, input { width: 100%; padding: 16px; margin-bottom: 25px; border: 2px solid #cbd5e1; border-radius: 15px; font-size: 18px; box-sizing: border-box; }
         
-        button { width: 100%; padding: 16px; margin-bottom: 10px; border: none; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; }
+        button { width: 100%; padding: 20px; margin-bottom: 12px; border: none; border-radius: 15px; font-weight: 900; font-size: 18px; cursor: pointer; text-transform: uppercase; }
         .btn-juan { background: var(--juan); color: white; }
         .btn-tania { background: var(--tania); color: white; }
         
-        /* Estilos Historial */
-        .historial-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
-        .historial-item:last-child { border: none; }
-        .btn-del { background: #fee2e2; color: #ef4444; width: auto; padding: 8px 12px; font-size: 12px; margin: 0; }
+        .historial-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #e2e8f0; font-size: 16px; }
+        .btn-del { background: #fee2e2; color: #ef4444; width: auto; padding: 10px 15px; font-size: 14px; margin: 0; border-radius: 10px; }
         
-        .balance-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
-        .resultado { font-size: 1.1rem; font-weight: bold; text-align: center; margin-top: 20px; padding: 20px; border-radius: 12px; }
-        .debe-juan { background: #fee2e2; color: #991b1b; }
-        .debe-tania { background: #dcfce7; color: #166534; }
+        .balance-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #e2e8f0; font-size: 18px; }
+        .resultado { font-size: 1.3rem; font-weight: 900; text-align: center; margin-top: 25px; padding: 25px; border-radius: 15px; border: 2px solid transparent; }
+        .debe-juan { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .debe-tania { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
     </style>
 </head>
 <body>
 
 <nav class="tabs">
-    <button class="tab-btn active" onclick="showTab('DIARIOS', this)">Diarios</button>
-    <button class="tab-btn" onclick="showTab('MENSUALES', this)">Mensu.</button>
-    <button class="tab-btn" onclick="showTab('JC', this)">Solo JC</button>
-    <button class="tab-btn" onclick="showTab('HISTORIAL', this)">Historial</button>
-    <button class="tab-btn" onclick="showTab('BALANCE', this)">Balance</button>
+    <button class="tab-btn active" onclick="showTab('DIARIOS', this)">DIARIO</button>
+    <button class="tab-btn" onclick="showTab('MENSUALES', this)">MENSUAL</button>
+    <button class="tab-btn" onclick="showTab('JC', this)">SOLO JC</button>
+    <button class="tab-btn" onclick="showTab('HISTORIAL', this)">HISTORIAL</button>
+    <button class="tab-btn" onclick="showTab('BALANCE', this)">BALANCE</button>
 </nav>
 
 <div id="DIARIOS" class="container active">
     <div class="card">
-        <label>Gasto Diario (50/50)</label>
+        <label>GASTO DIARIO (50/50)</label>
         <select id="select-diarios"></select>
-        <input type="number" id="monto-diarios" inputmode="decimal" placeholder="Monto $">
+        <input type="number" id="monto-diarios" inputmode="decimal" placeholder="MONTO $">
         <button class="btn-juan" onclick="guardarGasto('DIARIOS', 'JUAN')">PAGÓ JUAN</button>
         <button class="btn-tania" onclick="guardarGasto('DIARIOS', 'TANIA')">PAGÓ TANIA</button>
     </div>
@@ -59,9 +57,9 @@
 
 <div id="MENSUALES" class="container">
     <div class="card">
-        <label>Gasto Mensual (50/50)</label>
+        <label>GASTO MENSUAL (50/50)</label>
         <select id="select-mensuales"></select>
-        <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="Monto $">
+        <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="MONTO $">
         <button class="btn-juan" onclick="guardarGasto('MENSUALES', 'JUAN')">PAGÓ JUAN</button>
         <button class="btn-tania" onclick="guardarGasto('MENSUALES', 'TANIA')">PAGÓ TANIA</button>
     </div>
@@ -69,21 +67,20 @@
 
 <div id="JC" class="container">
     <div class="card">
-        <label>Solo JC (Juan debe a Tania)</label>
+        <label>SOLO JC (DEUDA JUAN)</label>
         <select id="select-jc"></select>
-        <input type="number" id="monto-jc" inputmode="decimal" placeholder="Monto $">
+        <input type="number" id="monto-jc" inputmode="decimal" placeholder="MONTO $">
         <button class="btn-tania" onclick="guardarGasto('JC', 'TANIA')">PAGÓ TANIA</button>
     </div>
 </div>
 
 <div id="HISTORIAL" class="container">
-    <h3>Gastos del Mes</h3>
     <div class="card" id="lista-historial">Cargando...</div>
 </div>
 
 <div id="BALANCE" class="container">
     <div class="card" id="resumen-balance"></div>
-    <button style="background: #64748b; color: white;" onclick="calcularBalance()">🔄 Actualizar Datos</button>
+    <button style="background: #64748b; color: white;" onclick="calcularBalance()">🔄 ACTUALIZAR DATOS</button>
 </div>
 
 <script>
@@ -121,36 +118,51 @@
         listas.jc.sort().forEach(i => selJ.innerHTML += `<option value="${i}">${i}</option>`);
     }
 
-    function guardarGasto(tipo, pagador) {
+    async function guardarGasto(tipo, pagador) {
         const item = document.getElementById(`select-${tipo.toLowerCase()}`).value;
         const inputMonto = document.getElementById(`monto-${tipo.toLowerCase()}`);
         const monto = parseFloat(inputMonto.value);
-        if (!monto || monto <= 0) return alert("Monto inválido");
+        if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
 
         const mesAnio = `${new Date().getMonth() + 1}-${new Date().getFullYear()}`;
+
+        // Validación de duplicados para MENSUALES
+        if (tipo === 'MENSUALES') {
+            const snapshot = await db.ref(`gastos/${mesAnio}`).once('value');
+            let yaExiste = false;
+            snapshot.forEach(child => {
+                if (child.val().item === item && child.val().tipo === 'MENSUALES') {
+                    yaExiste = true;
+                }
+            });
+            if (yaExiste) {
+                return alert("ERROR: Este gasto mensual ya fue registrado este mes.");
+            }
+        }
+
         db.ref(`gastos/${mesAnio}`).push({ tipo, item, monto, pagador, fecha: new Date().toISOString() })
-        .then(() => { alert("✅ Guardado"); inputMonto.value = ""; });
+        .then(() => { alert("✅ GUARDADO"); inputMonto.value = ""; });
     }
 
     function cargarHistorial() {
         const mesAnio = `${new Date().getMonth() + 1}-${new Date().getFullYear()}`;
         const listaDiv = document.getElementById('lista-historial');
         db.ref(`gastos/${mesAnio}`).on('value', (s) => {
-            listaDiv.innerHTML = "";
-            if (!s.exists()) { listaDiv.innerHTML = "No hay gastos este mes."; return; }
+            listaDiv.innerHTML = "<h3 style='text-align:center'>HISTORIAL</h3>";
+            if (!s.exists()) { listaDiv.innerHTML += "<p style='text-align:center'>No hay gastos.</p>"; return; }
             s.forEach(c => {
                 const g = c.val();
                 listaDiv.innerHTML += `
                     <div class="historial-item">
                         <div><b>${g.item}</b><br><small>${g.pagador} - $${g.monto}</small></div>
-                        <button class="btn-del" onclick="eliminarGasto('${c.key}')">Eliminar</button>
+                        <button class="btn-del" onclick="eliminarGasto('${c.key}')">BORRAR</button>
                     </div>`;
             });
         });
     }
 
     function eliminarGasto(id) {
-        if (confirm("¿Borrar este gasto?")) {
+        if (confirm("¿BORRAR GASTO?")) {
             const mesAnio = `${new Date().getMonth() + 1}-${new Date().getFullYear()}`;
             db.ref(`gastos/${mesAnio}/${id}`).remove();
         }
@@ -168,11 +180,11 @@
             });
             const deudaJuan = ((j50 + t50) / 2 - j50) + totalJC;
             document.getElementById('resumen-balance').innerHTML = `
-                <div class="balance-item"><span>Juan pagó (50/50):</span> <strong>$${j50.toFixed(0)}</strong></div>
-                <div class="balance-item"><span>Tania pagó (50/50):</span> <strong>$${t50.toFixed(0)}</strong></div>
-                <div class="balance-item"><span>Deuda JC (100%):</span> <strong>$${totalJC.toFixed(0)}</strong></div>
+                <div class="balance-item"><span>JUAN PAGÓ (50/50):</span> <strong>$${j50.toFixed(0)}</strong></div>
+                <div class="balance-item"><span>TANIA PAGÓ (50/50):</span> <strong>$${t50.toFixed(0)}</strong></div>
+                <div class="balance-item"><span>DEUDA JC (100%):</span> <strong>$${totalJC.toFixed(0)}</strong></div>
                 <div class="resultado ${deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}">
-                    ${deudaJuan > 0 ? `JUAN debe a TANIA: $${deudaJuan.toFixed(0)}` : `TANIA debe a JUAN: $${Math.abs(deudaJuan).toFixed(0)}`}
+                    ${deudaJuan > 0 ? `JUAN DEBE A TANIA: $${deudaJuan.toFixed(0)}` : `TANIA DEBE A JUAN: $${Math.abs(deudaJuan).toFixed(0)}`}
                 </div>`;
         });
     }
