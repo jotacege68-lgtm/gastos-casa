@@ -10,10 +10,12 @@
         :root { --juan: #2563eb; --tania: #db2777; --bg: #f1f5f9; --header-h: 75px; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding-top: calc(var(--header-h) + 20px); color: #1e293b; }
         
-        /* Menú Superior Muy Grande */
-        .tabs { position: fixed; top: 0; width: 100%; background: white; display: flex; height: var(--header-h); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; overflow-x: auto; white-space: nowrap; }
-        .tab-btn { flex: 1; min-width: 90px; border: none; background: none; font-size: 13px; font-weight: 900; color: #94a3b8; text-transform: uppercase; cursor: pointer; border-bottom: 6px solid transparent; padding: 0 5px; }
-        .tab-btn.active { color: var(--juan); border-bottom: 6px solid var(--juan); background: #f8fafc; }
+        /* Menú Superior con letras blancas al activar */
+        .tabs { position: fixed; top: 0; width: 100%; background: #334155; display: flex; height: var(--header-h); box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000; overflow-x: auto; white-space: nowrap; }
+        .tab-btn { flex: 1; min-width: 90px; border: none; background: none; font-size: 13px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; cursor: pointer; transition: 0.2s; padding: 0 5px; }
+        
+        /* Estilo cuando la pestaña está activa */
+        .tab-btn.active { color: white !important; background: var(--juan); border-bottom: 6px solid #1d4ed8; font-weight: 900; }
 
         .container { padding: 15px; display: none; max-width: 500px; margin: auto; }
         .container.active { display: block; }
@@ -126,7 +128,6 @@
 
         const mesAnio = `${new Date().getMonth() + 1}-${new Date().getFullYear()}`;
 
-        // Validación de duplicados para MENSUALES
         if (tipo === 'MENSUALES') {
             const snapshot = await db.ref(`gastos/${mesAnio}`).once('value');
             let yaExiste = false;
