@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>App Gastos PRO</title>
+    <title>App Gastos PRO - Final</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
@@ -11,7 +11,7 @@
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding-top: calc(var(--header-h) + 20px); color: #1e293b; }
         
         .tabs { position: fixed; top: 0; width: 100%; background: #334155; display: flex; height: var(--header-h); box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000; overflow-x: auto; white-space: nowrap; }
-        .tab-btn { flex: 1; min-width: 90px; border: none; background: none; font-size: 13px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; cursor: pointer; padding: 0 5px; }
+        .tab-btn { flex: 1; min-width: 90px; border: none; background: none; font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; cursor: pointer; padding: 0 5px; }
         .tab-btn.active { color: white !important; background: var(--juan); border-bottom: 6px solid #1d4ed8; font-weight: 900; }
 
         .container { padding: 15px; display: none; max-width: 500px; margin: auto; }
@@ -24,19 +24,19 @@
         button { width: 100%; padding: 18px; margin-bottom: 10px; border: none; border-radius: 15px; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; }
         .btn-juan { background: var(--juan); color: white; }
         .btn-tania { background: var(--tania); color: white; }
-        .btn-cerrar { background: #10b981; color: white; margin-top: 20px; border: 2px solid #059669; }
+        .btn-cerrar { background: #10b981; color: white; margin-top: 10px; }
         
         .filtro-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .historial-item { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .item-info { flex-grow: 1; }
-        .item-date { font-size: 11px; color: #94a3b8; font-weight: bold; }
-        .btn-del { background: #fee2e2; color: #ef4444; width: auto; padding: 8px 12px; font-size: 11px; margin: 0; border-radius: 8px; }
         .total-filtro { background: #e0f2fe; color: #0369a1; padding: 15px; border-radius: 12px; font-weight: 900; text-align: center; margin-bottom: 15px; }
 
-        .balance-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0; font-size: 16px; }
-        .resultado { font-size: 1.2rem; font-weight: 900; text-align: center; margin-top: 20px; padding: 20px; border-radius: 15px; }
+        .balance-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-size: 15px; }
+        .resultado { font-size: 1.1rem; font-weight: 900; text-align: center; margin-top: 15px; padding: 15px; border-radius: 15px; }
         .debe-juan { background: #fee2e2; color: #991b1b; }
         .debe-tania { background: #dcfce7; color: #166534; }
+
+        .resumen-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
+        .resumen-header { font-weight: 900; color: #334155; border-bottom: 2px solid #334155; margin-bottom: 10px; padding-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -47,54 +47,47 @@
     <button class="tab-btn" onclick="showTab('JC', this)">SOLO JC</button>
     <button class="tab-btn" onclick="showTab('HISTORIAL', this)">HISTÓRICO</button>
     <button class="tab-btn" onclick="showTab('BALANCE', this)">BALANCE</button>
+    <button class="tab-btn" onclick="showTab('RESUMENES', this)">RESÚMENES</button>
 </nav>
 
 <div id="DIARIOS" class="container active">
-    <div class="card">
-        <label>GASTO DIARIO (50/50)</label>
-        <select id="select-diarios"></select>
-        <input type="number" id="monto-diarios" inputmode="decimal" placeholder="MONTO $">
-        <button class="btn-juan" onclick="guardarGasto('DIARIOS', 'JUAN')">PAGÓ JUAN</button>
-        <button class="btn-tania" onclick="guardarGasto('DIARIOS', 'TANIA')">PAGÓ TANIA</button>
-    </div>
+    <div class="card"><label>DIARIO (50/50)</label><select id="select-diarios"></select>
+    <input type="number" id="monto-diarios" inputmode="decimal" placeholder="MONTO $">
+    <button class="btn-juan" onclick="guardarGasto('DIARIOS', 'JUAN')">PAGÓ JUAN</button>
+    <button class="btn-tania" onclick="guardarGasto('DIARIOS', 'TANIA')">PAGÓ TANIA</button></div>
 </div>
 
 <div id="MENSUALES" class="container">
-    <div class="card">
-        <label>GASTO MENSUAL (50/50)</label>
-        <select id="select-mensuales"></select>
-        <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="MONTO $">
-        <button class="btn-juan" onclick="guardarGasto('MENSUALES', 'JUAN')">PAGÓ JUAN</button>
-        <button class="btn-tania" onclick="guardarGasto('MENSUALES', 'TANIA')">PAGÓ TANIA</button>
-    </div>
+    <div class="card"><label>MENSUAL (50/50)</label><select id="select-mensuales"></select>
+    <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="MONTO $">
+    <button class="btn-juan" onclick="guardarGasto('MENSUALES', 'JUAN')">PAGÓ JUAN</button>
+    <button class="btn-tania" onclick="guardarGasto('MENSUALES', 'TANIA')">PAGÓ TANIA</button></div>
 </div>
 
 <div id="JC" class="container">
-    <div class="card">
-        <label>SOLO JC (DEUDA JUAN)</label>
-        <select id="select-jc"></select>
-        <input type="number" id="monto-jc" inputmode="decimal" placeholder="MONTO $">
-        <button class="btn-tania" onclick="guardarGasto('JC', 'TANIA')">PAGÓ TANIA</button>
-    </div>
+    <div class="card"><label>SOLO JC (DEUDA JUAN)</label><select id="select-jc"></select>
+    <input type="number" id="monto-jc" inputmode="decimal" placeholder="MONTO $">
+    <button class="btn-tania" onclick="guardarGasto('JC', 'TANIA')">PAGÓ TANIA</button></div>
 </div>
 
 <div id="HISTORIAL" class="container">
-    <div class="card">
-        <label>BUSCAR POR RUBRO</label>
-        <select id="filtro-rubro" onchange="cargarHistorial()"><option value="TODOS">TODOS LOS RUBROS</option></select>
-        <div class="filtro-group">
-            <div><label>DESDE</label><input type="date" id="fecha-desde" onchange="cargarHistorial()"></div>
-            <div><label>HASTA</label><input type="date" id="fecha-hasta" onchange="cargarHistorial()"></div>
-        </div>
-    </div>
+    <div class="card"><label>RUBRO</label><select id="filtro-rubro" onchange="cargarHistorial()"><option value="TODOS">TODOS</option></select>
+    <div class="filtro-group">
+        <div><label>DESDE</label><input type="date" id="fecha-desde" onchange="cargarHistorial()"></div>
+        <div><label>HASTA</label><input type="date" id="fecha-hasta" onchange="cargarHistorial()"></div>
+    </div></div>
     <div id="total-acumulado" class="total-filtro">Total: $0</div>
-    <div class="card" id="lista-historial" style="padding:10px">Cargando...</div>
+    <div class="card" id="lista-historial"></div>
 </div>
 
 <div id="BALANCE" class="container">
     <div class="card" id="resumen-balance"></div>
     <button style="background: #64748b; color: white;" onclick="calcularBalance()">🔄 ACTUALIZAR BALANCE</button>
-    <button id="btn-cerrar-mes" class="btn-cerrar" onclick="cerrarMes()">🔒 CERRAR MES Y GUARDAR REPORTE</button>
+    <button class="btn-cerrar" onclick="cerrarMes()">🔒 GUARDAR CIERRE DE MES</button>
+</div>
+
+<div id="RESUMENES" class="container">
+    <div id="lista-cierres">Cargando reportes...</div>
 </div>
 
 <script>
@@ -112,6 +105,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const ServerValue = firebase.database.ServerValue;
+    let balanceActual = {};
 
     const listas = {
         diarios: ["AGUA", "AUTO GASTOS", "AVICOLA", "BOLSAS", "CARNICERIA", "CASA VARIOS", "COMBUSTIBLE", "COMIDAS AFUERA", "DENTISTA", "EMPANADAS", "FARMACIA", "FCA. PASTAS", "FERIA PAPEL/CAFE", "FERIA VARIOS", "FERIA VERDURA", "FERRETERIA", "GASTOS ARTIGAS", "GATA COMIDA-PIEDRAS", "LA MOLIENDA", "LAVANDERIA", "PANADERIA", "PANADERIA S/G", "PESCADERIA", "PIZZA", "PROPINAS", "REGALOS", "SUPERGAS", "SUPERMERCADO", "VARIOS", "VERDULERIA", "VETERINARIA EXTRAS"],
@@ -119,18 +113,12 @@
         jc: ["EL TUNEL", "LA MOLIENDA", "CLUB AEBU", "MOVILES", "MEDICAMENTOS ESP."]
     };
 
-    let balanceGlobalActual = {};
-
     function cargarListas() {
-        const fullLista = [...listas.diarios, ...listas.mensuales, ...listas.jc].sort();
-        const selFiltro = document.getElementById('filtro-rubro');
-        fullLista.forEach(i => selFiltro.innerHTML += `<option value="${i}">${i}</option>`);
-        const selD = document.getElementById('select-diarios');
-        listas.diarios.sort().forEach(i => selD.innerHTML += `<option value="${i}">${i}</option>`);
-        const selM = document.getElementById('select-mensuales');
-        listas.mensuales.sort().forEach(i => selM.innerHTML += `<option value="${i}">${i}</option>`);
-        const selJ = document.getElementById('select-jc');
-        listas.jc.sort().forEach(i => selJ.innerHTML += `<option value="${i}">${i}</option>`);
+        const full = [...listas.diarios, ...listas.mensuales, ...listas.jc].sort();
+        full.forEach(i => document.getElementById('filtro-rubro').innerHTML += `<option value="${i}">${i}</option>`);
+        listas.diarios.sort().forEach(i => document.getElementById('select-diarios').innerHTML += `<option value="${i}">${i}</option>`);
+        listas.mensuales.sort().forEach(i => document.getElementById('select-mensuales').innerHTML += `<option value="${i}">${i}</option>`);
+        listas.jc.sort().forEach(i => document.getElementById('select-jc').innerHTML += `<option value="${i}">${i}</option>`);
     }
 
     async function guardarGasto(tipo, pagador) {
@@ -140,16 +128,7 @@
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
         const ahora = new Date();
         const mesAnio = `${ahora.getMonth() + 1}-${ahora.getFullYear()}`;
-        const fechaISO = ahora.toISOString().split('T')[0];
-
-        if (tipo === 'MENSUALES') {
-            const snap = await db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value');
-            let existe = false;
-            snap.forEach(c => { if(c.val().item === item) existe = true; });
-            if(existe) return alert("ERROR: Este gasto mensual ya fue registrado.");
-        }
-
-        db.ref(`gastos_global`).push({ tipo, item, monto, pagador, fecha: fechaISO, mesAnio, timestamp: ServerValue.TIMESTAMP })
+        db.ref(`gastos_global`).push({ tipo, item, monto, pagador, fecha: ahora.toISOString().split('T')[0], mesAnio, timestamp: ServerValue.TIMESTAMP })
         .then(() => { alert("✅ GUARDADO"); inputMonto.value = ""; });
     }
 
@@ -157,27 +136,22 @@
         const rubro = document.getElementById('filtro-rubro').value;
         const desde = document.getElementById('fecha-desde').value;
         const hasta = document.getElementById('fecha-hasta').value;
-        const listaDiv = document.getElementById('lista-historial');
         db.ref(`gastos_global`).orderByChild('fecha').once('value', (s) => {
-            listaDiv.innerHTML = ""; let suma = 0;
+            let html = "", suma = 0;
             s.forEach(c => {
                 const g = c.val();
                 if ((rubro === 'TODOS' || g.item === rubro) && (!desde || g.fecha >= desde) && (!hasta || g.fecha <= hasta)) {
                     suma += g.monto;
                     const f = g.fecha.split('-');
-                    listaDiv.innerHTML += `<div class="historial-item">
-                        <div class="item-info"><span class="item-date">${f[2]}/${f[1]}/${f[0]}</span><br><b>${g.item}</b> <small>(${g.pagador})</small></div>
-                        <div style="text-align:right"><b>$${g.monto}</b><br><button class="btn-del" onclick="eliminarGasto('${c.key}')">BORRAR</button></div>
-                    </div>`;
+                    html += `<div class="historial-item"><div><small>${f[2]}/${f[1]}/${f[0]}</small><br><b>${g.item}</b></div><div><b>$${g.monto}</b> <button class="btn-del" onclick="eliminarGasto('${c.key}')">X</button></div></div>`;
                 }
             });
+            document.getElementById('lista-historial').innerHTML = html;
             document.getElementById('total-acumulado').innerText = `TOTAL FILTRADO: $${suma.toFixed(0)}`;
         });
     }
 
-    function eliminarGasto(id) {
-        if (confirm("¿BORRAR GASTO?")) db.ref(`gastos_global/${id}`).remove().then(() => cargarHistorial());
-    }
+    function eliminarGasto(id) { if(confirm("¿Borrar?")) db.ref(`gastos_global/${id}`).remove().then(()=>cargarHistorial()); }
 
     function calcularBalance() {
         const ahora = new Date();
@@ -191,12 +165,12 @@
                 else if (g.pagador === 'TANIA') t50 += g.monto;
             });
             const deudaJuan = ((j50 + t50) / 2 - j50) + totalJC;
-            balanceGlobalActual = { j50, t50, totalJC, deudaJuan, mesAnio };
+            balanceActual = { j50, t50, totalJC, deudaJuan, mesAnio };
             document.getElementById('resumen-balance').innerHTML = `
-                <h3 style="text-align:center;margin-top:0">BALANCE ${new Intl.DateTimeFormat('es-ES', {month:'long'}).format(ahora).toUpperCase()}</h3>
-                <div class="balance-item"><span>JUAN PAGÓ (50/50):</span> <strong>$${j50.toFixed(0)}</strong></div>
-                <div class="balance-item"><span>TANIA PAGÓ (50/50):</span> <strong>$${t50.toFixed(0)}</strong></div>
-                <div class="balance-item"><span>DEUDA JC (100%):</span> <strong>$${totalJC.toFixed(0)}</strong></div>
+                <h3 style="text-align:center">BALANCE MES ACTUAL</h3>
+                <div class="balance-item"><span>Juan Pagó:</span> <strong>$${j50.toFixed(0)}</strong></div>
+                <div class="balance-item"><span>Tania Pagó:</span> <strong>$${t50.toFixed(0)}</strong></div>
+                <div class="balance-item"><span>Deuda JC:</span> <strong>$${totalJC.toFixed(0)}</strong></div>
                 <div class="resultado ${deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}">
                     ${deudaJuan > 0 ? `JUAN DEBE A TANIA: $${deudaJuan.toFixed(0)}` : `TANIA DEBE A JUAN: $${Math.abs(deudaJuan).toFixed(0)}`}
                 </div>`;
@@ -204,16 +178,32 @@
     }
 
     function cerrarMes() {
-        if (!balanceGlobalActual.mesAnio) return alert("Primero pulsa 'Actualizar Balance'");
-        const mesNombre = new Intl.DateTimeFormat('es-ES', {month:'long'}).format(new Date()).toUpperCase();
-        if (confirm(`¿Cerrar el mes de ${mesNombre} y guardar el reporte final?`)) {
-            db.ref(`cierres_mensuales/${balanceGlobalActual.mesAnio}`).set({
-                ...balanceGlobalActual,
-                fechaCierre: new Date().toISOString()
-            }).then(() => {
-                alert("🔒 Reporte de mes guardado con éxito.");
-            });
+        if(!balanceActual.mesAnio) return alert("Actualiza el balance primero");
+        if(confirm("¿Guardar este reporte final de mes?")) {
+            db.ref(`cierres_mensuales/${balanceActual.mesAnio}`).set({ ...balanceActual, fechaCierre: new Date().toISOString() })
+            .then(() => alert("🔒 Reporte guardado en RESÚMENES"));
         }
+    }
+
+    function cargarCierres() {
+        db.ref(`cierres_mensuales`).once('value', (s) => {
+            let html = "<h3 style='text-align:center'>REPORTES GUARDADOS</h3>";
+            if(!s.exists()) html += "<p style='text-align:center'>No hay cierres guardados.</p>";
+            s.forEach(c => {
+                const r = c.val();
+                html += `
+                <div class="resumen-card">
+                    <div class="resumen-header">MES: ${r.mesAnio}</div>
+                    <div class="balance-item"><span>Juan Pagó:</span> <span>$${r.j50.toFixed(0)}</span></div>
+                    <div class="balance-item"><span>Tania Pagó:</span> <span>$${r.t50.toFixed(0)}</span></div>
+                    <div class="balance-item"><span>Solo JC:</span> <span>$${r.totalJC.toFixed(0)}</span></div>
+                    <div class="resultado ${r.deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}" style="margin-top:10px; font-size:14px">
+                        ${r.deudaJuan > 0 ? `JUAN DEBIÓ: $${r.deudaJuan.toFixed(0)}` : `TANIA DEBIÓ: $${Math.abs(r.deudaJuan).toFixed(0)}`}
+                    </div>
+                </div>`;
+            });
+            document.getElementById('lista-cierres').innerHTML = html;
+        });
     }
 
     function showTab(id, btn) {
@@ -223,6 +213,7 @@
         btn.classList.add('active');
         if(id === 'HISTORIAL') cargarHistorial();
         if(id === 'BALANCE') calcularBalance();
+        if(id === 'RESUMENES') cargarCierres();
     }
     window.onload = cargarListas;
 </script>
