@@ -24,8 +24,8 @@
         button { width: 100%; padding: 18px; margin-bottom: 10px; border: none; border-radius: 15px; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; }
         .btn-juan { background: var(--juan); color: white; }
         .btn-tania { background: var(--tania); color: white; }
+        .btn-cerrar { background: #10b981; color: white; margin-top: 20px; border: 2px solid #059669; }
         
-        /* Estilos Histórico */
         .filtro-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .historial-item { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
         .item-info { flex-grow: 1; }
@@ -82,7 +82,6 @@
     <div class="card">
         <label>BUSCAR POR RUBRO</label>
         <select id="filtro-rubro" onchange="cargarHistorial()"><option value="TODOS">TODOS LOS RUBROS</option></select>
-        
         <div class="filtro-group">
             <div><label>DESDE</label><input type="date" id="fecha-desde" onchange="cargarHistorial()"></div>
             <div><label>HASTA</label><input type="date" id="fecha-hasta" onchange="cargarHistorial()"></div>
@@ -94,7 +93,8 @@
 
 <div id="BALANCE" class="container">
     <div class="card" id="resumen-balance"></div>
-    <button style="background: #64748b; color: white;" onclick="calcularBalance()">🔄 ACTUALIZAR BALANCE MES ACTUAL</button>
+    <button style="background: #64748b; color: white;" onclick="calcularBalance()">🔄 ACTUALIZAR BALANCE</button>
+    <button id="btn-cerrar-mes" class="btn-cerrar" onclick="cerrarMes()">🔒 CERRAR MES Y GUARDAR REPORTE</button>
 </div>
 
 <script>
@@ -111,6 +111,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const ServerValue = firebase.database.ServerValue;
 
     const listas = {
         diarios: ["AGUA", "AUTO GASTOS", "AVICOLA", "BOLSAS", "CARNICERIA", "CASA VARIOS", "COMBUSTIBLE", "COMIDAS AFUERA", "DENTISTA", "EMPANADAS", "FARMACIA", "FCA. PASTAS", "FERIA PAPEL/CAFE", "FERIA VARIOS", "FERIA VERDURA", "FERRETERIA", "GASTOS ARTIGAS", "GATA COMIDA-PIEDRAS", "LA MOLIENDA", "LAVANDERIA", "PANADERIA", "PANADERIA S/G", "PESCADERIA", "PIZZA", "PROPINAS", "REGALOS", "SUPERGAS", "SUPERMERCADO", "VARIOS", "VERDULERIA", "VETERINARIA EXTRAS"],
@@ -118,12 +119,12 @@
         jc: ["EL TUNEL", "LA MOLIENDA", "CLUB AEBU", "MOVILES", "MEDICAMENTOS ESP."]
     };
 
+    let balanceGlobalActual = {};
+
     function cargarListas() {
         const fullLista = [...listas.diarios, ...listas.mensuales, ...listas.jc].sort();
         const selFiltro = document.getElementById('filtro-rubro');
         fullLista.forEach(i => selFiltro.innerHTML += `<option value="${i}">${i}</option>`);
-        
-        // Cargar selects de entrada
         const selD = document.getElementById('select-diarios');
         listas.diarios.sort().forEach(i => selD.innerHTML += `<option value="${i}">${i}</option>`);
         const selM = document.getElementById('select-mensuales');
@@ -137,12 +138,10 @@
         const inputMonto = document.getElementById(`monto-${tipo.toLowerCase()}`);
         const monto = parseFloat(inputMonto.value);
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
-
         const ahora = new Date();
         const mesAnio = `${ahora.getMonth() + 1}-${ahora.getFullYear()}`;
-        const fechaISO = ahora.toISOString().split('T')[0]; // YYYY-MM-DD para filtros
+        const fechaISO = ahora.toISOString().split('T')[0];
 
-        // Validación duplicados mensuales
         if (tipo === 'MENSUALES') {
             const snap = await db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value');
             let existe = false;
@@ -159,32 +158,17 @@
         const desde = document.getElementById('fecha-desde').value;
         const hasta = document.getElementById('fecha-hasta').value;
         const listaDiv = document.getElementById('lista-historial');
-        
         db.ref(`gastos_global`).orderByChild('fecha').once('value', (s) => {
-            listaDiv.innerHTML = "";
-            let suma = 0;
+            listaDiv.innerHTML = ""; let suma = 0;
             s.forEach(c => {
                 const g = c.val();
-                const cumpleRubro = (rubro === 'TODOS' || g.item === rubro);
-                const cumpleFecha = (!desde || g.fecha >= desde) && (!hasta || g.fecha <= hasta);
-
-                if (cumpleRubro && cumpleFecha) {
+                if ((rubro === 'TODOS' || g.item === rubro) && (!desde || g.fecha >= desde) && (!hasta || g.fecha <= hasta)) {
                     suma += g.monto;
-                    // Formatear fecha para mostrar: DD/MM/YYYY
                     const f = g.fecha.split('-');
-                    const fechaFormateada = `${f[2]}/${f[1]}/${f[0]}`;
-                    
-                    listaDiv.innerHTML += `
-                        <div class="historial-item">
-                            <div class="item-info">
-                                <span class="item-date">${fechaFormateada}</span><br>
-                                <b>${g.item}</b> <small>(${g.pagador})</small>
-                            </div>
-                            <div style="text-align:right">
-                                <b>$${g.monto}</b><br>
-                                <button class="btn-del" onclick="eliminarGasto('${c.key}')">BORRAR</button>
-                            </div>
-                        </div>`;
+                    listaDiv.innerHTML += `<div class="historial-item">
+                        <div class="item-info"><span class="item-date">${f[2]}/${f[1]}/${f[0]}</span><br><b>${g.item}</b> <small>(${g.pagador})</small></div>
+                        <div style="text-align:right"><b>$${g.monto}</b><br><button class="btn-del" onclick="eliminarGasto('${c.key}')">BORRAR</button></div>
+                    </div>`;
                 }
             });
             document.getElementById('total-acumulado').innerText = `TOTAL FILTRADO: $${suma.toFixed(0)}`;
@@ -207,8 +191,9 @@
                 else if (g.pagador === 'TANIA') t50 += g.monto;
             });
             const deudaJuan = ((j50 + t50) / 2 - j50) + totalJC;
+            balanceGlobalActual = { j50, t50, totalJC, deudaJuan, mesAnio };
             document.getElementById('resumen-balance').innerHTML = `
-                <h3 style="text-align:center;margin-top:0">MES ACTUAL</h3>
+                <h3 style="text-align:center;margin-top:0">BALANCE ${new Intl.DateTimeFormat('es-ES', {month:'long'}).format(ahora).toUpperCase()}</h3>
                 <div class="balance-item"><span>JUAN PAGÓ (50/50):</span> <strong>$${j50.toFixed(0)}</strong></div>
                 <div class="balance-item"><span>TANIA PAGÓ (50/50):</span> <strong>$${t50.toFixed(0)}</strong></div>
                 <div class="balance-item"><span>DEUDA JC (100%):</span> <strong>$${totalJC.toFixed(0)}</strong></div>
@@ -216,6 +201,19 @@
                     ${deudaJuan > 0 ? `JUAN DEBE A TANIA: $${deudaJuan.toFixed(0)}` : `TANIA DEBE A JUAN: $${Math.abs(deudaJuan).toFixed(0)}`}
                 </div>`;
         });
+    }
+
+    function cerrarMes() {
+        if (!balanceGlobalActual.mesAnio) return alert("Primero pulsa 'Actualizar Balance'");
+        const mesNombre = new Intl.DateTimeFormat('es-ES', {month:'long'}).format(new Date()).toUpperCase();
+        if (confirm(`¿Cerrar el mes de ${mesNombre} y guardar el reporte final?`)) {
+            db.ref(`cierres_mensuales/${balanceGlobalActual.mesAnio}`).set({
+                ...balanceGlobalActual,
+                fechaCierre: new Date().toISOString()
+            }).then(() => {
+                alert("🔒 Reporte de mes guardado con éxito.");
+            });
+        }
     }
 
     function showTab(id, btn) {
@@ -226,7 +224,6 @@
         if(id === 'HISTORIAL') cargarHistorial();
         if(id === 'BALANCE') calcularBalance();
     }
-    const ServerValue = firebase.database.ServerValue;
     window.onload = cargarListas;
 </script>
 </body>
