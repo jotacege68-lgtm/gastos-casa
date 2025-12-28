@@ -1,4 +1,4 @@
-   <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -28,6 +28,11 @@
         
         .filtro-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .historial-item { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .item-info { flex-grow: 1; line-height: 1.4; }
+        .item-pagador { font-size: 12px; font-weight: 800; color: #475569; text-transform: uppercase; }
+        .item-date { font-size: 11px; color: #94a3b8; font-weight: bold; }
+        .btn-del { background: #fee2e2; color: #ef4444; width: auto; padding: 8px 12px; font-size: 11px; margin: 0; border-radius: 8px; }
+        
         .total-filtro { background: #e0f2fe; color: #0369a1; padding: 15px; border-radius: 12px; font-weight: 900; text-align: center; margin-bottom: 15px; }
 
         .balance-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-size: 15px; }
@@ -77,7 +82,7 @@
         <div><label>HASTA</label><input type="date" id="fecha-hasta" onchange="cargarHistorial()"></div>
     </div></div>
     <div id="total-acumulado" class="total-filtro">Total: $0</div>
-    <div class="card" id="lista-historial"></div>
+    <div class="card" id="lista-historial" style="padding:10px"></div>
 </div>
 
 <div id="BALANCE" class="container">
@@ -143,7 +148,18 @@
                 if ((rubro === 'TODOS' || g.item === rubro) && (!desde || g.fecha >= desde) && (!hasta || g.fecha <= hasta)) {
                     suma += g.monto;
                     const f = g.fecha.split('-');
-                    html += `<div class="historial-item"><div><small>${f[2]}/${f[1]}/${f[0]}</small><br><b>${g.item}</b></div><div><b>$${g.monto}</b> <button class="btn-del" onclick="eliminarGasto('${c.key}')">X</button></div></div>`;
+                    html += `
+                        <div class="historial-item">
+                            <div class="item-info">
+                                <span class="item-date">${f[2]}/${f[1]}/${f[0]}</span><br>
+                                <b>${g.item}</b><br>
+                                <span class="item-pagador">Pagó: ${g.pagador}</span>
+                            </div>
+                            <div style="text-align:right">
+                                <b style="font-size:16px">$${g.monto}</b><br>
+                                <button class="btn-del" onclick="eliminarGasto('${c.key}')">X</button>
+                            </div>
+                        </div>`;
                 }
             });
             document.getElementById('lista-historial').innerHTML = html;
