@@ -29,6 +29,7 @@
         .resultado { font-size: 1.1rem; font-weight: 900; text-align: center; margin-top: 15px; padding: 15px; border-radius: 15px; }
         .debe-juan { background: #fee2e2; color: #991b1b; }
         .debe-tania { background: #dcfce7; color: #166534; }
+        .resumen-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -39,6 +40,7 @@
     <button class="tab-btn" onclick="showTab('JC', this)">SOLO JC</button>
     <button class="tab-btn" onclick="showTab('HISTORIAL', this)">HISTÓRICO</button>
     <button class="tab-btn" onclick="showTab('BALANCE', this)">BALANCE</button>
+    <button class="tab-btn" onclick="showTab('RESUMENES', this)">RESÚMENES</button>
 </nav>
 
 <div id="DIARIOS" class="container active">
@@ -76,6 +78,11 @@
 <div id="BALANCE" class="container">
     <div class="card" id="resumen-balance"></div>
     <button style="background: #64748b; color: white;" onclick="calcularBalance()">🔄 ACTUALIZAR BALANCE</button>
+    <button class="btn-cerrar" onclick="cerrarMes()">🔒 GUARDAR CIERRE DE MES</button>
+</div>
+
+<div id="RESUMENES" class="container">
+    <div id="lista-cierres"></div>
 </div>
 
 <script>
@@ -93,6 +100,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const ServerValue = firebase.database.ServerValue;
+    let balanceActual = {};
 
     const listas = {
         diarios: ["AGUA", "AUTO GASTOS", "AVICOLA", "BOLSAS", "CARNICERIA", "CASA VARIOS", "COMBUSTIBLE", "COMIDAS AFUERA", "DENTISTA", "EMPANADAS", "FARMACIA", "FCA. PASTAS", "FERIA PAPEL/CAFE", "FERIA VARIOS", "FERIA VERDURA", "FERRETERIA", "GASTOS ARTIGAS", "GATA COMIDA-PIEDRAS", "LA MOLIENDA", "LAVANDERIA", "PANADERIA", "PANADERIA S/G", "PEAJES", "PESCADERIA", "PIZZA", "PROPINAS", "REGALOS", "SUPERGAS", "SUPERMERCADO", "VARIOS", "VERDULERIA", "VETERINARIA EXTRAS"],
@@ -104,22 +112,15 @@
         const item = document.getElementById(`select-${tipo}`).value;
         const rubrosConNota = ["CASA VARIOS", "REGALOS", "COMIDAS AFUERA", "VARIOS", "GASTOS OCA", "GASTOS ITAU", "GASTOS SANTANDER"];
         const inputNota = document.getElementById(`nota-${tipo}`);
-        if(inputNota) {
-            inputNota.style.display = rubrosConNota.includes(item) ? "block" : "none";
-        }
+        if(inputNota) inputNota.style.display = rubrosConNota.includes(item) ? "block" : "none";
     }
 
     function cargarListas() {
         const full = [...listas.diarios, ...listas.mensuales, ...listas.jc].sort();
-        const fRubro = document.getElementById('filtro-rubro');
-        const sDiarios = document.getElementById('select-diarios');
-        const sMensuales = document.getElementById('select-mensuales');
-        const sJC = document.getElementById('select-jc');
-        
-        full.forEach(i => fRubro.innerHTML += `<option value="${i}">${i}</option>`);
-        listas.diarios.sort().forEach(i => sDiarios.innerHTML += `<option value="${i}">${i}</option>`);
-        listas.mensuales.sort().forEach(i => sMensuales.innerHTML += `<option value="${i}">${i}</option>`);
-        listas.jc.sort().forEach(i => sJC.innerHTML += `<option value="${i}">${i}</option>`);
+        full.forEach(i => document.getElementById('filtro-rubro').innerHTML += `<option value="${i}">${i}</option>`);
+        listas.diarios.sort().forEach(i => document.getElementById('select-diarios').innerHTML += `<option value="${i}">${i}</option>`);
+        listas.mensuales.sort().forEach(i => document.getElementById('select-mensuales').innerHTML += `<option value="${i}">${i}</option>`);
+        listas.jc.sort().forEach(i => document.getElementById('select-jc').innerHTML += `<option value="${i}">${i}</option>`);
     }
 
     async function guardarGasto(tipo, pagador) {
@@ -128,22 +129,11 @@
         const nota = (notaInput && notaInput.style.display !== 'none') ? notaInput.value : "";
         const inputMonto = document.getElementById(`monto-${tipo.toLowerCase()}`);
         const monto = parseFloat(inputMonto.value);
-        
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
-        
         const ahora = new Date();
         const mesAnio = `${ahora.getMonth() + 1}-${ahora.getFullYear()}`;
-        
-        db.ref(`gastos_global`).push({ 
-            tipo, item, nota, monto, pagador, 
-            fecha: ahora.toISOString().split('T')[0], 
-            mesAnio, 
-            timestamp: ServerValue.TIMESTAMP 
-        }).then(() => { 
-            alert("✅ GUARDADO"); 
-            inputMonto.value = ""; 
-            if(notaInput) notaInput.value = ""; 
-        }).catch(e => alert("Error: " + e.message));
+        db.ref(`gastos_global`).push({ tipo, item, nota, monto, pagador, fecha: ahora.toISOString().split('T')[0], mesAnio, timestamp: ServerValue.TIMESTAMP })
+        .then(() => { alert("✅ GUARDADO"); inputMonto.value = ""; if(notaInput) notaInput.value = ""; });
     }
 
     function cargarHistorial() {
@@ -182,7 +172,24 @@
                 else if (g.pagador === 'TANIA') t50 += g.monto;
             });
             const deudaJuan = ((j50 + t50) / 2 - j50) + totalJC;
+            balanceActual = { j50, t50, totalJC, deudaJuan, mesAnio };
             document.getElementById('resumen-balance').innerHTML = `<h3 style="text-align:center">BALANCE MES ACTUAL</h3><div class="balance-item"><span>Juan Pagó:</span> <strong>$${j50.toFixed(0)}</strong></div><div class="balance-item"><span>Tania Pagó:</span> <strong>$${t50.toFixed(0)}</strong></div><div class="balance-item"><span>Deuda JC:</span> <strong>$${totalJC.toFixed(0)}</strong></div><div class="resultado ${deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}">${deudaJuan > 0 ? `JUAN DEBE A TANIA: $${deudaJuan.toFixed(0)}` : `TANIA DEBE A JUAN: $${Math.abs(deudaJuan).toFixed(0)}`}</div>`;
+        });
+    }
+
+    function cerrarMes() {
+        if(!balanceActual.mesAnio) return alert("Actualiza el balance primero");
+        if(confirm("¿Guardar cierre?")) db.ref(`cierres_mensuales/${balanceActual.mesAnio}`).set({ ...balanceActual, fechaCierre: new Date().toISOString() }).then(() => alert("🔒 Guardado"));
+    }
+
+    function cargarCierres() {
+        db.ref(`cierres_mensuales`).once('value', (s) => {
+            let html = "<h3 style='text-align:center'>REPORTES ANTERIORES</h3>";
+            s.forEach(c => {
+                const r = c.val();
+                html += `<div class="resumen-card"><b>MES: ${r.mesAnio}</b><br>Juan: $${r.j50.toFixed(0)} | Tania: $${r.t50.toFixed(0)} | JC: $${r.totalJC.toFixed(0)}<br><div class="resultado ${r.deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}" style="font-size:12px">${r.deudaJuan > 0 ? `JUAN DEBIÓ: $${r.deudaJuan.toFixed(0)}` : `TANIA DEBIÓ: $${Math.abs(r.deudaJuan).toFixed(0)}`}</div></div>`;
+            });
+            document.getElementById('lista-cierres').innerHTML = html;
         });
     }
 
@@ -193,6 +200,7 @@
         btn.classList.add('active');
         if(id === 'HISTORIAL') cargarHistorial();
         if(id === 'BALANCE') calcularBalance();
+        if(id === 'RESUMENES') cargarCierres();
     }
     window.onload = cargarListas;
 </script>
