@@ -23,17 +23,15 @@
         .btn-tania { background: var(--tania); color: white; }
         .btn-cerrar { background: #10b981; color: white; margin-top: 10px; }
         .historial-item { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* ESTILO ESPECIAL PARA JC EN EL HISTORIAL */
         .item-jc { border-left: 5px solid #1e3a8a; background: #eff6ff; color: #1e3a8a; }
         .item-pagador { font-size: 12px; font-weight: 800; color: #475569; text-transform: uppercase; }
         .item-nota { font-size: 13px; color: #b45309; font-style: italic; font-weight: 600; background: #fef3c7; padding: 2px 5px; border-radius: 4px; }
-        
         .total-filtro { background: #e0f2fe; color: #0369a1; padding: 15px; border-radius: 12px; font-weight: 900; text-align: center; margin-bottom: 15px; }
         .resultado { font-size: 1.1rem; font-weight: 900; text-align: center; margin-top: 15px; padding: 15px; border-radius: 15px; }
         .debe-juan { background: #fee2e2; color: #991b1b; }
         .debe-tania { background: #dcfce7; color: #166534; }
         .resumen-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
+        .input-cuotas { border-color: #10b981; background: #f0fdf4; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -59,7 +57,9 @@
 <div id="MENSUALES" class="container">
     <div class="card"><label>MENSUAL (50/50)</label>
     <select id="select-mensuales"></select>
-    <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="MONTO $">
+    <label style="color: #059669; font-size: 12px;">¿REPETIR MESES? (CUOTAS)</label>
+    <input type="number" id="cuotas-mensuales" class="input-cuotas" value="1" min="1" max="24">
+    <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="MONTO POR MES $">
     <button class="btn-juan" onclick="guardarGasto('MENSUALES', 'JUAN')">PAGÓ JUAN</button>
     <button class="btn-tania" onclick="guardarGasto('MENSUALES', 'TANIA')">PAGÓ TANIA</button></div>
 </div>
@@ -108,7 +108,7 @@
 
     const listas = {
         diarios: ["AGUA", "AUTO GASTOS", "AVICOLA", "BOLSAS", "CARNICERIA", "CASA VARIOS", "COMBUSTIBLE", "COMIDAS AFUERA", "DENTISTA", "EMPANADAS", "FARMACIA", "FCA. PASTAS", "FERIA PAPEL/CAFE", "FERIA VARIOS", "FERIA VERDURA", "FERRETERIA", "GASTOS ARTIGAS", "GATA COMIDA-PIEDRAS", "LA MOLIENDA", "LAVANDERIA", "PANADERIA", "PANADERIA S/G", "PEAJES", "PESCADERIA", "PIZZA", "PROPINAS", "REGALOS", "SUPERGAS", "SUPERMERCADO", "VARIOS", "VERDULERIA", "VETERINARIA EXTRAS"],
-        mensuales: ["A.N.V Juan", "A.N.V. Tania", "ABERTURAS 1/6", "ABERTURAS 2/6", "ABERTURAS 3/6", "ABERTURAS 4/6", "ABERTURAS 5/6", "ABERTURAS 6/6", "ELECTRICIDAD", "ESPAÑOLA MOVIL", "GASTOS COMUNES DOLARES", "GASTOS COMUNES PESOS", "HBO", "INTERNET", "NETFLIX", "OLLA LEO FA", "SERVICIO FUNEBRE", "VETERINARIA", "COSTO TARJETA BROU REC. 1/3", "COSTO TARJETA BROU REC. 2/3", "COSTO TARJETA BROU REC. 3/3", "COSTO TARJETA ITAU 1/3", "COSTO TARJETA ITAU 2/3", "COSTO TARJETA ITAU 3/3", "COSTO TARJETA OCA 1/3", "COSTO TARJETA OCA 2/3", "COSTO TARJETA OCA 3/3", "MANTENIMIENTO AUTO 1/1", "MANTENIMIENTO AUTO 1/3", "MANTENIMIENTO AUTO 2/3", "MANTENIMIENTO AUTO 3/3", "CONTRIBUCION INM. JULIO", "CONTRIBUCION INM. MARZO", "CONTRIBUCION INM. NOVIEMBRE", "IMP. PRIMARIA 1/1", "IMP. PRIMARIA MAYO", "IMP. PRIMARIA AGOSTO", "IMP. PRIMARIA OCTUBRE", "IMP. PUERTA FEBRERO", "IMP. PUERTA ABRIL", "IMP. PUERTA JUNIO", "IMP. PUERTA AGOSTO", "IMP. PUERTA OCTUBRE", "IMP. PUERTA DICIEMBRE", "PATENTE RODADOS 1/1", "PATENTE RODADOS 1/6", "PATENTE RODADOS 2/6", "PATENTE RODADOS 3/6", "PATENTE RODADOS 4/6", "PATENTE RODADOS 5/6", "PATENTE RODADOS 6/6", "SEGURO CASA Y AUTO 1/1"],
+        mensuales: ["A.N.V Juan", "A.N.V. Tania", "ABERTURAS", "ELECTRICIDAD", "ESPAÑOLA MOVIL", "GASTOS COMUNES DOLARES", "GASTOS COMUNES PESOS", "HBO", "INTERNET", "NETFLIX", "OLLA LEO FA", "SERVICIO FUNEBRE", "VETERINARIA", "TARJETA BROU REC.", "TARJETA ITAU", "TARJETA OCA", "MANTENIMIENTO AUTO", "CONTRIBUCION INMOBILIARIA", "IMP. PRIMARIA", "IMP. PUERTA", "PATENTE RODADOS", "SEGURO CASA Y AUTO"],
         jc: ["EL TUNEL", "LA MOLIENDA", "CLUB AEBU", "MOVILES", "MEDICAMENTOS ESP.", "GASTOS OCA", "GASTOS ITAU", "GASTOS SANTANDER"]
     };
 
@@ -133,11 +133,36 @@
         const nota = (notaInput && notaInput.style.display !== 'none') ? notaInput.value : "";
         const inputMonto = document.getElementById(`monto-${tipo.toLowerCase()}`);
         const monto = parseFloat(inputMonto.value);
+        
+        // Manejo de cuotas solo en MENSUALES
+        let cuotas = 1;
+        if(tipo === 'MENSUALES') {
+            cuotas = parseInt(document.getElementById('cuotas-mensuales').value) || 1;
+        }
+
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
-        const ahora = new Date();
-        const mesAnio = `${ahora.getMonth() + 1}-${ahora.getFullYear()}`;
-        db.ref(`gastos_global`).push({ tipo, item, nota, monto, pagador, fecha: ahora.toISOString().split('T')[0], mesAnio, timestamp: ServerValue.TIMESTAMP })
-        .then(() => { alert("✅ GUARDADO"); inputMonto.value = ""; if(notaInput) notaInput.value = ""; });
+        
+        const promesas = [];
+        const hoy = new Date();
+
+        for(let i = 0; i < cuotas; i++) {
+            const fechaFutura = new Date(hoy.getFullYear(), hoy.getMonth() + i, 15); // Día 15 para evitar problemas de zona horaria
+            const mesAnio = `${fechaFutura.getMonth() + 1}-${fechaFutura.getFullYear()}`;
+            const notaFinal = cuotas > 1 ? `${nota} (Cuota ${i+1}/${cuotas})`.trim() : nota;
+
+            promesas.push(db.ref(`gastos_global`).push({ 
+                tipo, item, nota: notaFinal, monto, pagador, 
+                fecha: fechaFutura.toISOString().split('T')[0], 
+                mesAnio, timestamp: ServerValue.TIMESTAMP 
+            }));
+        }
+        
+        Promise.all(promesas).then(() => { 
+            alert(cuotas > 1 ? `✅ ${cuotas} CUOTAS GUARDADAS` : "✅ GUARDADO"); 
+            inputMonto.value = ""; 
+            if(notaInput) notaInput.value = "";
+            if(tipo === 'MENSUALES') document.getElementById('cuotas-mensuales').value = "1";
+        });
     }
 
     function cargarHistorial() {
@@ -151,20 +176,10 @@
                 if ((rubro === 'TODOS' || g.item === rubro) && (!desde || g.fecha >= desde) && (!hasta || g.fecha <= hasta)) {
                     suma += g.monto;
                     const f = g.fecha.split('-');
-                    // Verificamos si es un gasto JC para aplicar el estilo especial
                     const esJC = (g.tipo === 'JC');
-                    
                     html += `<div class="historial-item ${esJC ? 'item-jc' : ''}">
-                        <div>
-                            <small>${f[2]}/${f[1]}/${f[0]}</small><br>
-                            <b>${g.item}</b> ${esJC ? '🔵' : ''}<br>
-                            ${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}
-                            <span class="item-pagador">${esJC ? 'DEUDA JUAN (JC)' : 'Pagó: ' + g.pagador}</span>
-                        </div>
-                        <div style="text-align:right">
-                            <b>$${g.monto}</b> 
-                            <button style="width:auto;padding:5px 10px;background:#fee2e2;color:#ef4444" onclick="eliminarGasto('${c.key}')">X</button>
-                        </div>
+                        <div><small>${f[2]}/${f[1]}/${f[0]}</small><br><b>${g.item}</b> ${esJC ? '🔵' : ''}<br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">${esJC ? 'DEUDA JUAN (JC)' : 'Pagó: ' + g.pagador}</span></div>
+                        <div style="text-align:right"><b>$${g.monto}</b> <button style="width:auto;padding:5px 10px;background:#fee2e2;color:#ef4444" onclick="eliminarGasto('${c.key}')">X</button></div>
                     </div>`;
                 }
             });
@@ -220,4 +235,4 @@
     window.onload = cargarListas;
 </script>
 </body>
-</html>
+    </html>
