@@ -32,6 +32,9 @@
         .debe-tania { background: #dcfce7; color: #166534; }
         .resumen-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
         .input-cuotas { border-color: #10b981; background: #f0fdf4; font-weight: bold; }
+        .mes-separador { background: #334155; color: white; text-align: center; padding: 8px; font-weight: 900; font-size: 13px; border-radius: 8px; margin: 15px 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-balance { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-nav { background: #64748b; color: white; padding: 10px 15px; border-radius: 10px; width: auto; margin: 0; }
     </style>
 </head>
 <body>
@@ -81,8 +84,13 @@
 </div>
 
 <div id="BALANCE" class="container">
+    <div class="nav-balance">
+        <button class="btn-nav" onclick="cambiarMesBalance(-1)">◀</button>
+        <h3 id="titulo-mes-balance" style="margin:0">MES</h3>
+        <button class="btn-nav" onclick="cambiarMesBalance(1)">▶</button>
+    </div>
     <div class="card" id="resumen-balance"></div>
-    <button style="background: #64748b; color: white;" onclick="calcularBalance()">🔄 ACTUALIZAR BALANCE</button>
+    <button style="background: #64748b; color: white;" onclick="calcularBalance()">🔄 ACTUALIZAR</button>
     <button class="btn-cerrar" onclick="cerrarMes()">🔒 GUARDAR CIERRE DE MES</button>
 </div>
 
@@ -105,6 +113,8 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const ServerValue = firebase.database.ServerValue;
+    
+    let fechaBalanceView = new Date(); // Para navegar meses
     let balanceActual = {};
 
     const listas = {
@@ -134,35 +144,17 @@
         const nota = (notaInput && notaInput.style.display !== 'none') ? notaInput.value : "";
         const inputMonto = document.getElementById(`monto-${tipo.toLowerCase()}`);
         const monto = parseFloat(inputMonto.value);
-        
-        let cuotas = 1;
-        if(tipo === 'MENSUALES') {
-            cuotas = parseInt(document.getElementById('cuotas-mensuales').value) || 1;
-        }
-
+        let cuotas = (tipo === 'MENSUALES') ? (parseInt(document.getElementById('cuotas-mensuales').value) || 1) : 1;
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
-        
         const promesas = [];
         const hoy = new Date();
-
         for(let i = 0; i < cuotas; i++) {
-            const fechaFutura = new Date(hoy.getFullYear(), hoy.getMonth() + i, 15);
-            const mesAnio = `${fechaFutura.getMonth() + 1}-${fechaFutura.getFullYear()}`;
-            const notaFinal = cuotas > 1 ? `${nota} (Cuota ${i+1}/${cuotas})`.trim() : nota;
-
-            promesas.push(db.ref(`gastos_global`).push({ 
-                tipo, item, nota: notaFinal, monto, pagador, 
-                fecha: fechaFutura.toISOString().split('T')[0], 
-                mesAnio, timestamp: ServerValue.TIMESTAMP 
-            }));
+            const fF = new Date(hoy.getFullYear(), hoy.getMonth() + i, 15);
+            const mesAnio = `${fF.getMonth() + 1}-${fF.getFullYear()}`;
+            const nF = cuotas > 1 ? `${nota} (${i+1}/${cuotas})`.trim() : nota;
+            promesas.push(db.ref(`gastos_global`).push({ tipo, item, nota: nF, monto, pagador, fecha: fF.toISOString().split('T')[0], mesAnio, timestamp: ServerValue.TIMESTAMP }));
         }
-        
-        Promise.all(promesas).then(() => { 
-            alert(cuotas > 1 ? `✅ ${cuotas} CUOTAS GUARDADAS` : "✅ GUARDADO"); 
-            inputMonto.value = ""; 
-            if(notaInput) { notaInput.value = ""; notaInput.style.display = "none"; }
-            if(tipo === 'MENSUALES') document.getElementById('cuotas-mensuales').value = "1";
-        });
+        Promise.all(promesas).then(() => { alert("✅ GUARDADO"); inputMonto.value = ""; if(notaInput) notaInput.value = ""; });
     }
 
     function cargarHistorial() {
@@ -170,12 +162,21 @@
         const desde = document.getElementById('fecha-desde').value;
         const hasta = document.getElementById('fecha-hasta').value;
         db.ref(`gastos_global`).orderByChild('fecha').once('value', (s) => {
-            let html = "", suma = 0;
+            let html = "", suma = 0, ultimoMes = "";
+            const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+            
             s.forEach(c => {
                 const g = c.val();
                 if ((rubro === 'TODOS' || g.item === rubro) && (!desde || g.fecha >= desde) && (!hasta || g.fecha <= hasta)) {
-                    suma += g.monto;
                     const f = g.fecha.split('-');
+                    const mesActual = `${meses[parseInt(f[1])-1]} ${f[0]}`;
+                    
+                    if(mesActual !== ultimoMes) {
+                        html += `<div class="mes-separador">--- ${mesActual} ---</div>`;
+                        ultimoMes = mesActual;
+                    }
+
+                    suma += g.monto;
                     const esJC = (g.tipo === 'JC');
                     html += `<div class="historial-item ${esJC ? 'item-jc' : ''}">
                         <div><small>${f[2]}/${f[1]}/${f[0]}</small><br><b>${g.item}</b> ${esJC ? '🔵' : ''}<br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">${esJC ? 'DEUDA JUAN (JC)' : 'Pagó: ' + g.pagador}</span></div>
@@ -190,9 +191,16 @@
 
     function eliminarGasto(id) { if(confirm("¿Borrar?")) db.ref(`gastos_global/${id}`).remove().then(()=>cargarHistorial()); }
 
+    function cambiarMesBalance(n) {
+        fechaBalanceView.setMonth(fechaBalanceView.getMonth() + n);
+        calcularBalance();
+    }
+
     function calcularBalance() {
-        const ahora = new Date();
-        const mesAnio = `${ahora.getMonth() + 1}-${ahora.getFullYear()}`;
+        const meses = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+        const mesAnio = `${fechaBalanceView.getMonth() + 1}-${fechaBalanceView.getFullYear()}`;
+        document.getElementById('titulo-mes-balance').innerText = `${meses[fechaBalanceView.getMonth()]} ${fechaBalanceView.getFullYear()}`;
+        
         db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
             let j50 = 0, t50 = 0, totalJC = 0;
             s.forEach(c => {
@@ -203,7 +211,7 @@
             });
             const deudaJuan = ((j50 + t50) / 2 - j50) + totalJC;
             balanceActual = { j50, t50, totalJC, deudaJuan, mesAnio };
-            document.getElementById('resumen-balance').innerHTML = `<h3 style="text-align:center">BALANCE MES ACTUAL</h3><div class="balance-item"><span>Juan Pagó:</span> <strong>$${j50.toFixed(0)}</strong></div><div class="balance-item"><span>Tania Pagó:</span> <strong>$${t50.toFixed(0)}</strong></div><div class="balance-item"><span>Deuda JC:</span> <strong>$${totalJC.toFixed(0)}</strong></div><div class="resultado ${deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}">${deudaJuan > 0 ? `JUAN DEBE A TANIA: $${deudaJuan.toFixed(0)}` : `TANIA DEBE A JUAN: $${Math.abs(deudaJuan).toFixed(0)}`}</div>`;
+            document.getElementById('resumen-balance').innerHTML = `<div class="balance-item"><span>Juan Pagó:</span> <strong>$${j50.toFixed(0)}</strong></div><div class="balance-item"><span>Tania Pagó:</span> <strong>$${t50.toFixed(0)}</strong></div><div class="balance-item"><span>Deuda JC:</span> <strong>$${totalJC.toFixed(0)}</strong></div><div class="resultado ${deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}">${deudaJuan > 0 ? `JUAN DEBE A TANIA: $${deudaJuan.toFixed(0)}` : `TANIA DEBE A JUAN: $${Math.abs(deudaJuan).toFixed(0)}`}</div>`;
         });
     }
 
