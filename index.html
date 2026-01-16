@@ -56,7 +56,8 @@
 
 <div id="MENSUALES" class="container">
     <div class="card"><label>MENSUAL (50/50)</label>
-    <select id="select-mensuales"></select>
+    <select id="select-mensuales" onchange="toggleNota('mensuales')"></select>
+    <input type="text" id="nota-mensuales" class="nota-input" placeholder="DETALLE / CONCEPTO" style="display:none">
     <label style="color: #059669; font-size: 12px;">¿REPETIR MESES? (CUOTAS)</label>
     <input type="number" id="cuotas-mensuales" class="input-cuotas" value="1" min="1" max="24">
     <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="MONTO POR MES $">
@@ -108,7 +109,7 @@
 
     const listas = {
         diarios: ["AGUA", "AUTO GASTOS", "AVICOLA", "BOLSAS", "CARNICERIA", "CASA VARIOS", "COMBUSTIBLE", "COMIDAS AFUERA", "DENTISTA", "EMPANADAS", "FARMACIA", "FCA. PASTAS", "FERIA PAPEL/CAFE", "FERIA VARIOS", "FERIA VERDURA", "FERRETERIA", "GASTOS ARTIGAS", "GATA COMIDA-PIEDRAS", "LA MOLIENDA", "LAVANDERIA", "PANADERIA", "PANADERIA S/G", "PEAJES", "PESCADERIA", "PIZZA", "PROPINAS", "REGALOS", "SUPERGAS", "SUPERMERCADO", "VARIOS", "VERDULERIA", "VETERINARIA EXTRAS"],
-        mensuales: ["A.N.V Juan", "A.N.V. Tania", "ABERTURAS", "ELECTRICIDAD", "ESPAÑOLA MOVIL", "GASTOS COMUNES DOLARES", "GASTOS COMUNES PESOS", "HBO", "INTERNET", "NETFLIX", "OLLA LEO FA", "SERVICIO FUNEBRE", "VETERINARIA", "TARJETA BROU REC.", "TARJETA ITAU", "TARJETA OCA", "MANTENIMIENTO AUTO", "CONTRIBUCION INMOBILIARIA", "IMP. PRIMARIA", "IMP. PUERTA", "PATENTE RODADOS", "SEGURO CASA Y AUTO"],
+        mensuales: ["A.N.V Juan", "A.N.V. Tania", "ABERTURAS", "CASA VARIOS", "ELECTRICIDAD", "ESPAÑOLA MOVIL", "GASTOS COMUNES DOLARES", "GASTOS COMUNES PESOS", "HBO", "INTERNET", "NETFLIX", "OLLA LEO FA", "SERVICIO FUNEBRE", "VARIOS", "VETERINARIA", "TARJETA BROU REC.", "TARJETA ITAU", "TARJETA OCA", "MANTENIMIENTO AUTO", "CONTRIBUCION INMOBILIARIA", "IMP. PRIMARIA", "IMP. PUERTA", "PATENTE RODADOS", "SEGURO CASA Y AUTO"],
         jc: ["EL TUNEL", "LA MOLIENDA", "CLUB AEBU", "MOVILES", "MEDICAMENTOS ESP.", "GASTOS OCA", "GASTOS ITAU", "GASTOS SANTANDER"]
     };
 
@@ -134,7 +135,6 @@
         const inputMonto = document.getElementById(`monto-${tipo.toLowerCase()}`);
         const monto = parseFloat(inputMonto.value);
         
-        // Manejo de cuotas solo en MENSUALES
         let cuotas = 1;
         if(tipo === 'MENSUALES') {
             cuotas = parseInt(document.getElementById('cuotas-mensuales').value) || 1;
@@ -146,7 +146,7 @@
         const hoy = new Date();
 
         for(let i = 0; i < cuotas; i++) {
-            const fechaFutura = new Date(hoy.getFullYear(), hoy.getMonth() + i, 15); // Día 15 para evitar problemas de zona horaria
+            const fechaFutura = new Date(hoy.getFullYear(), hoy.getMonth() + i, 15);
             const mesAnio = `${fechaFutura.getMonth() + 1}-${fechaFutura.getFullYear()}`;
             const notaFinal = cuotas > 1 ? `${nota} (Cuota ${i+1}/${cuotas})`.trim() : nota;
 
@@ -160,7 +160,7 @@
         Promise.all(promesas).then(() => { 
             alert(cuotas > 1 ? `✅ ${cuotas} CUOTAS GUARDADAS` : "✅ GUARDADO"); 
             inputMonto.value = ""; 
-            if(notaInput) notaInput.value = "";
+            if(notaInput) { notaInput.value = ""; notaInput.style.display = "none"; }
             if(tipo === 'MENSUALES') document.getElementById('cuotas-mensuales').value = "1";
         });
     }
@@ -235,4 +235,4 @@
     window.onload = cargarListas;
 </script>
 </body>
-    </html>
+</html>
