@@ -24,15 +24,14 @@
         .btn-cerrar { background: #10b981; color: white; margin-top: 10px; }
         .historial-item { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
         .item-jc { border-left: 5px solid #1e3a8a; background: #eff6ff; color: #1e3a8a; }
-        .item-pagador { font-size: 12px; font-weight: 800; color: #475569; text-transform: uppercase; }
+        .item-pagador { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; }
         .item-nota { font-size: 13px; color: #b45309; font-style: italic; font-weight: 600; background: #fef3c7; padding: 2px 5px; border-radius: 4px; }
-        .total-filtro { background: #e0f2fe; color: #0369a1; padding: 15px; border-radius: 12px; font-weight: 900; text-align: center; margin-bottom: 15px; }
+        .total-filtro { background: #1e293b; color: white; padding: 15px; border-radius: 12px; font-weight: 900; text-align: center; margin-bottom: 15px; border: 2px solid #fbbf24; }
+        .subtotal-seccion { background: #e2e8f0; color: #1e293b; padding: 8px 15px; font-weight: 900; font-size: 14px; border-radius: 8px; margin: 10px 0; display: flex; justify-content: space-between; }
         .resultado { font-size: 1.1rem; font-weight: 900; text-align: center; margin-top: 15px; padding: 15px; border-radius: 15px; }
         .debe-juan { background: #fee2e2; color: #991b1b; }
         .debe-tania { background: #dcfce7; color: #166534; }
-        .resumen-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
-        .input-cuotas { border-color: #10b981; background: #f0fdf4; font-weight: bold; }
-        .mes-separador { background: #334155; color: white; text-align: center; padding: 8px; font-weight: 900; font-size: 13px; border-radius: 8px; margin: 15px 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
+        .mes-separador { background: #334155; color: white; text-align: center; padding: 8px; font-weight: 900; font-size: 13px; border-radius: 8px; margin: 15px 0 10px 0; text-transform: uppercase; }
         .nav-balance { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .btn-nav { background: #64748b; color: white; padding: 10px 15px; border-radius: 10px; width: auto; margin: 0; }
     </style>
@@ -78,7 +77,7 @@
 
 <div id="HISTORIAL" class="container">
     <div class="card">
-        <label>FILTRAR POR RUBRO O PERSONA</label>
+        <label>REPORTE POR PERSONA O RUBRO</label>
         <select id="filtro-rubro" onchange="cargarHistorial()">
             <option value="TODOS">--- TODOS LOS GASTOS ---</option>
             <option value="FILTRO_JUAN">--- PAGÓ JUAN (DIARIO+MENSUAL+JC) ---</option>
@@ -91,7 +90,7 @@
         </div>
     </div>
     <div id="total-acumulado" class="total-filtro">Total: $0</div>
-    <div class="card" id="lista-historial"></div>
+    <div id="lista-historial"></div>
 </div>
 
 <div id="BALANCE" class="container">
@@ -161,18 +160,16 @@
 
         if (tipo === 'MENSUALES' && item !== "CASA VARIOS" && item !== "VARIOS") {
             const snapshot = await db.ref(`gastos_global`).once('value');
-            let yaExiste = false; let mesConflicto = "";
+            let yaExiste = false;
             snapshot.forEach(child => {
                 const g = child.val();
                 for (let i = 0; i < cuotas; i++) {
                     const fCheck = new Date(); fCheck.setMonth(fCheck.getMonth() + i);
                     const mesAnioCheck = `${fCheck.getMonth() + 1}-${fCheck.getFullYear()}`;
-                    if (g.tipo === 'MENSUALES' && g.item === item && g.mesAnio === mesAnioCheck) {
-                        yaExiste = true; mesConflicto = mesAnioCheck;
-                    }
+                    if (g.tipo === 'MENSUALES' && g.item === item && g.mesAnio === mesAnioCheck) yaExiste = true;
                 }
             });
-            if (yaExiste) { alert(`⚠️ ERROR: El rubro "${item}" ya está cargado en el mes ${mesConflicto}.`); return; }
+            if (yaExiste) { alert(`⚠️ ERROR: El rubro "${item}" ya está cargado.`); return; }
         }
 
         const promesas = [];
@@ -190,37 +187,67 @@
         const filtro = document.getElementById('filtro-rubro').value;
         const desde = document.getElementById('fecha-desde').value;
         const hasta = document.getElementById('fecha-hasta').value;
+        
         db.ref(`gastos_global`).orderByChild('fecha').once('value', (s) => {
-            let html = "", suma = 0, ultimoMes = "";
-            const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+            let gastos = [];
             s.forEach(c => {
                 const g = c.val();
-                let cumpleFiltro = false;
-                
-                if (filtro === 'TODOS') cumpleFiltro = true;
-                else if (filtro === 'FILTRO_JUAN') cumpleFiltro = (g.pagador === 'JUAN' || g.tipo === 'JC');
-                else if (filtro === 'FILTRO_TANIA') cumpleFiltro = (g.pagador === 'TANIA' && g.tipo !== 'JC');
-                else if (filtro === 'FILTRO_JC') cumpleFiltro = (g.tipo === 'JC');
-                else cumpleFiltro = (g.item === filtro);
-
-                if (cumpleFiltro && (!desde || g.fecha >= desde) && (!hasta || g.fecha <= hasta)) {
-                    const f = g.fecha.split('-');
-                    const mesActual = `${meses[parseInt(f[1])-1]} ${f[0]}`;
-                    if(mesActual !== ultimoMes) {
-                        html += `<div class="mes-separador">--- ${mesActual} ---</div>`;
-                        ultimoMes = mesActual;
-                    }
-                    suma += g.monto;
-                    const esJC = (g.tipo === 'JC');
-                    html += `<div class="historial-item ${esJC ? 'item-jc' : ''}">
-                        <div><small>${f[2]}/${f[1]}/${f[0]}</small><br><b>${g.item}</b> ${esJC ? '🔵' : ''}<br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">${esJC ? 'LISTA JC' : 'Pagó: ' + g.pagador}</span></div>
-                        <div style="text-align:right"><b>$${g.monto}</b> <button style="width:auto;padding:5px 10px;background:#fee2e2;color:#ef4444" onclick="eliminarGasto('${c.key}')">X</button></div>
-                    </div>`;
+                g.id = c.key;
+                if ((!desde || g.fecha >= desde) && (!hasta || g.fecha <= hasta)) {
+                    gastos.push(g);
                 }
             });
+
+            let html = "";
+            let totalGeneral = 0;
+
+            if (filtro === 'FILTRO_JUAN' || filtro === 'FILTRO_TANIA') {
+                const persona = filtro === 'FILTRO_JUAN' ? 'JUAN' : 'TANIA';
+                
+                // Grupos
+                const d = gastos.filter(g => g.pagador === persona && g.tipo === 'DIARIOS');
+                const m = gastos.filter(g => g.pagador === persona && g.tipo === 'MENSUALES');
+                const jc = persona === 'JUAN' ? gastos.filter(g => g.tipo === 'JC') : [];
+
+                const sumD = d.reduce((acc, g) => acc + g.monto, 0);
+                const sumM = m.reduce((acc, g) => acc + g.monto, 0);
+                const sumJC = jc.reduce((acc, g) => acc + g.monto, 0);
+
+                html += `<div class="subtotal-seccion"><span>LISTA DIARIOS</span><span>$${sumD.toFixed(0)}</span></div>` + d.map(g => itemHtml(g)).join('');
+                html += `<div class="subtotal-seccion"><span>LISTA MENSUAL</span><span>$${sumM.toFixed(0)}</span></div>` + m.map(g => itemHtml(g)).join('');
+                if(persona === 'JUAN') {
+                    html += `<div class="subtotal-seccion"><span>LISTA SOLO JC</span><span>$${sumJC.toFixed(0)}</span></div>` + jc.map(g => itemHtml(g)).join('');
+                }
+                totalGeneral = sumD + sumM + sumJC;
+            } else {
+                let ultimoMes = "";
+                const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+                gastos.forEach(g => {
+                    if (filtro === 'TODOS' || (filtro === 'FILTRO_JC' && g.tipo === 'JC') || g.item === filtro) {
+                        const f = g.fecha.split('-');
+                        const mesActual = `${meses[parseInt(f[1])-1]} ${f[0]}`;
+                        if(mesActual !== ultimoMes) {
+                            html += `<div class="mes-separador">--- ${mesActual} ---</div>`;
+                            ultimoMes = mesActual;
+                        }
+                        html += itemHtml(g);
+                        totalGeneral += g.monto;
+                    }
+                });
+            }
+
             document.getElementById('lista-historial').innerHTML = html;
-            document.getElementById('total-acumulado').innerText = `TOTAL FILTRADO: $${suma.toFixed(0)}`;
+            document.getElementById('total-acumulado').innerText = `GRAN TOTAL: $${totalGeneral.toFixed(0)}`;
         });
+    }
+
+    function itemHtml(g) {
+        const f = g.fecha.split('-');
+        const esJC = (g.tipo === 'JC');
+        return `<div class="card historial-item ${esJC ? 'item-jc' : ''}" style="margin-bottom:8px; padding:12px;">
+            <div><small>${f[2]}/${f[1]}/${f[0]}</small><br><b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">${esJC ? 'LISTA JC' : 'PAGÓ: ' + g.pagador}</span></div>
+            <div style="text-align:right"><b>$${g.monto}</b> <button style="width:auto;padding:5px 10px;background:#fee2e2;color:#ef4444" onclick="eliminarGasto('${g.id}')">X</button></div>
+        </div>`;
     }
 
     function eliminarGasto(id) { if(confirm("¿Borrar?")) db.ref(`gastos_global/${id}`).remove().then(()=>cargarHistorial()); }
@@ -254,7 +281,7 @@
             let html = "<h3 style='text-align:center'>REPORTES ANTERIORES</h3>";
             s.forEach(c => {
                 const r = c.val();
-                html += `<div class="resumen-card"><b>MES: ${r.mesAnio}</b><br>Juan: $${r.j50.toFixed(0)} | Tania: $${r.t50.toFixed(0)} | JC: $${r.totalJC.toFixed(0)}<br><div class="resultado ${r.deudaJuan > 0 ? `debe-juan` : `debe-tania`}" style="font-size:12px">${r.deudaJuan > 0 ? `JUAN DEBIÓ: $${r.deudaJuan.toFixed(0)}` : `TANIA DEBIÓ: $${Math.abs(r.deudaJuan).toFixed(0)}`}</div></div>`;
+                html += `<div class="card resumen-card"><b>MES: ${r.mesAnio}</b><br>Juan: $${r.j50.toFixed(0)} | Tania: $${r.t50.toFixed(0)} | JC: $${r.totalJC.toFixed(0)}<br><div class="resultado ${r.deudaJuan > 0 ? `debe-juan` : `debe-tania`}" style="font-size:12px">${r.deudaJuan > 0 ? `JUAN DEBIÓ: $${r.deudaJuan.toFixed(0)}` : `TANIA DEBIÓ: $${Math.abs(r.deudaJuan).toFixed(0)}`}</div></div>`;
             });
             document.getElementById('lista-cierres').innerHTML = html;
         });
