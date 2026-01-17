@@ -77,8 +77,19 @@
 </div>
 
 <div id="HISTORIAL" class="container">
-    <div class="card"><label>RUBRO</label><select id="filtro-rubro" onchange="cargarHistorial()"><option value="TODOS">TODOS</option></select>
-    <div class="filtro-group"><input type="date" id="fecha-desde" onchange="cargarHistorial()"><input type="date" id="fecha-hasta" onchange="cargarHistorial()"></div></div>
+    <div class="card">
+        <label>FILTRAR POR RUBRO O PERSONA</label>
+        <select id="filtro-rubro" onchange="cargarHistorial()">
+            <option value="TODOS">--- TODOS LOS GASTOS ---</option>
+            <option value="FILTRO_JUAN">--- PAGÓ JUAN (DIARIO+MENSUAL+JC) ---</option>
+            <option value="FILTRO_TANIA">--- PAGÓ TANIA (DIARIO+MENSUAL) ---</option>
+            <option value="FILTRO_JC">--- SOLO LISTA JC ---</option>
+        </select>
+        <div class="filtro-group">
+            <input type="date" id="fecha-desde" onchange="cargarHistorial()">
+            <input type="date" id="fecha-hasta" onchange="cargarHistorial()">
+        </div>
+    </div>
     <div id="total-acumulado" class="total-filtro">Total: $0</div>
     <div class="card" id="lista-historial"></div>
 </div>
@@ -131,8 +142,9 @@
     }
 
     function cargarListas() {
+        const comboHistorial = document.getElementById('filtro-rubro');
         const full = [...listas.diarios, ...listas.mensuales, ...listas.jc].sort();
-        full.forEach(i => document.getElementById('filtro-rubro').innerHTML += `<option value="${i}">${i}</option>`);
+        full.forEach(i => comboHistorial.innerHTML += `<option value="${i}">${i}</option>`);
         listas.diarios.sort().forEach(i => document.getElementById('select-diarios').innerHTML += `<option value="${i}">${i}</option>`);
         listas.mensuales.sort().forEach(i => document.getElementById('select-mensuales').innerHTML += `<option value="${i}">${i}</option>`);
         listas.jc.sort().forEach(i => document.getElementById('select-jc').innerHTML += `<option value="${i}">${i}</option>`);
@@ -145,62 +157,37 @@
         const inputMonto = document.getElementById(`monto-${tipo.toLowerCase()}`);
         const monto = parseFloat(inputMonto.value);
         let cuotas = (tipo === 'MENSUALES') ? (parseInt(document.getElementById('cuotas-mensuales').value) || 1) : 1;
-        
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
 
-        // --- VERIFICACIÓN DE DUPLICADOS PARA MENSUALES ---
         if (tipo === 'MENSUALES' && item !== "CASA VARIOS" && item !== "VARIOS") {
             const snapshot = await db.ref(`gastos_global`).once('value');
-            let yaExiste = false;
-            let mesConflicto = "";
-
+            let yaExiste = false; let mesConflicto = "";
             snapshot.forEach(child => {
                 const g = child.val();
                 for (let i = 0; i < cuotas; i++) {
-                    const fCheck = new Date();
-                    fCheck.setMonth(fCheck.getMonth() + i);
+                    const fCheck = new Date(); fCheck.setMonth(fCheck.getMonth() + i);
                     const mesAnioCheck = `${fCheck.getMonth() + 1}-${fCheck.getFullYear()}`;
-                    
                     if (g.tipo === 'MENSUALES' && g.item === item && g.mesAnio === mesAnioCheck) {
-                        yaExiste = true;
-                        mesConflicto = mesAnioCheck;
+                        yaExiste = true; mesConflicto = mesAnioCheck;
                     }
                 }
             });
-
-            if (yaExiste) {
-                alert(`⚠️ ERROR: El rubro "${item}" ya está cargado en el mes ${mesConflicto}.`);
-                return;
-            }
+            if (yaExiste) { alert(`⚠️ ERROR: El rubro "${item}" ya está cargado en el mes ${mesConflicto}.`); return; }
         }
-        // ------------------------------------------------
 
         const promesas = [];
         const hoy = new Date();
-
         for(let i = 0; i < cuotas; i++) {
             let fF = new Date(hoy.getFullYear(), hoy.getMonth() + i, (i === 0 ? hoy.getDate() : 15));
             const mesAnio = `${fF.getMonth() + 1}-${fF.getFullYear()}`;
             const nF = cuotas > 1 ? `${nota} (${i+1}/${cuotas})`.trim() : nota;
-            
-            promesas.push(db.ref(`gastos_global`).push({ 
-                tipo, item, nota: nF, monto, pagador, 
-                fecha: fF.toISOString().split('T')[0], 
-                mesAnio, 
-                timestamp: ServerValue.TIMESTAMP 
-            }));
+            promesas.push(db.ref(`gastos_global`).push({ tipo, item, nota: nF, monto, pagador, fecha: fF.toISOString().split('T')[0], mesAnio, timestamp: ServerValue.TIMESTAMP }));
         }
-        
-        Promise.all(promesas).then(() => { 
-            alert("✅ GUARDADO"); 
-            inputMonto.value = ""; 
-            if(notaInput) { notaInput.value = ""; notaInput.style.display = "none"; }
-            if(tipo === 'MENSUALES') document.getElementById('cuotas-mensuales').value = "1";
-        });
+        Promise.all(promesas).then(() => { alert("✅ GUARDADO"); inputMonto.value = ""; if(notaInput) { notaInput.value = ""; notaInput.style.display = "none"; } });
     }
 
     function cargarHistorial() {
-        const rubro = document.getElementById('filtro-rubro').value;
+        const filtro = document.getElementById('filtro-rubro').value;
         const desde = document.getElementById('fecha-desde').value;
         const hasta = document.getElementById('fecha-hasta').value;
         db.ref(`gastos_global`).orderByChild('fecha').once('value', (s) => {
@@ -208,7 +195,15 @@
             const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
             s.forEach(c => {
                 const g = c.val();
-                if ((rubro === 'TODOS' || g.item === rubro) && (!desde || g.fecha >= desde) && (!hasta || g.fecha <= hasta)) {
+                let cumpleFiltro = false;
+                
+                if (filtro === 'TODOS') cumpleFiltro = true;
+                else if (filtro === 'FILTRO_JUAN') cumpleFiltro = (g.pagador === 'JUAN' || g.tipo === 'JC');
+                else if (filtro === 'FILTRO_TANIA') cumpleFiltro = (g.pagador === 'TANIA' && g.tipo !== 'JC');
+                else if (filtro === 'FILTRO_JC') cumpleFiltro = (g.tipo === 'JC');
+                else cumpleFiltro = (g.item === filtro);
+
+                if (cumpleFiltro && (!desde || g.fecha >= desde) && (!hasta || g.fecha <= hasta)) {
                     const f = g.fecha.split('-');
                     const mesActual = `${meses[parseInt(f[1])-1]} ${f[0]}`;
                     if(mesActual !== ultimoMes) {
@@ -218,7 +213,7 @@
                     suma += g.monto;
                     const esJC = (g.tipo === 'JC');
                     html += `<div class="historial-item ${esJC ? 'item-jc' : ''}">
-                        <div><small>${f[2]}/${f[1]}/${f[0]}</small><br><b>${g.item}</b> ${esJC ? '🔵' : ''}<br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">${esJC ? 'DEUDA JUAN (JC)' : 'Pagó: ' + g.pagador}</span></div>
+                        <div><small>${f[2]}/${f[1]}/${f[0]}</small><br><b>${g.item}</b> ${esJC ? '🔵' : ''}<br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">${esJC ? 'LISTA JC' : 'Pagó: ' + g.pagador}</span></div>
                         <div style="text-align:right"><b>$${g.monto}</b> <button style="width:auto;padding:5px 10px;background:#fee2e2;color:#ef4444" onclick="eliminarGasto('${c.key}')">X</button></div>
                     </div>`;
                 }
@@ -229,11 +224,7 @@
     }
 
     function eliminarGasto(id) { if(confirm("¿Borrar?")) db.ref(`gastos_global/${id}`).remove().then(()=>cargarHistorial()); }
-
-    function cambiarMesBalance(n) {
-        fechaBalanceView.setMonth(fechaBalanceView.getMonth() + n);
-        calcularBalance();
-    }
+    function cambiarMesBalance(n) { fechaBalanceView.setMonth(fechaBalanceView.getMonth() + n); calcularBalance(); }
 
     function calcularBalance() {
         const meses = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
@@ -263,7 +254,7 @@
             let html = "<h3 style='text-align:center'>REPORTES ANTERIORES</h3>";
             s.forEach(c => {
                 const r = c.val();
-                html += `<div class="resumen-card"><b>MES: ${r.mesAnio}</b><br>Juan: $${r.j50.toFixed(0)} | Tania: $${r.t50.toFixed(0)} | JC: $${r.totalJC.toFixed(0)}<br><div class="resultado ${r.deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}" style="font-size:12px">${r.deudaJuan > 0 ? `JUAN DEBIÓ: $${r.deudaJuan.toFixed(0)}` : `TANIA DEBIÓ: $${Math.abs(r.deudaJuan).toFixed(0)}`}</div></div>`;
+                html += `<div class="resumen-card"><b>MES: ${r.mesAnio}</b><br>Juan: $${r.j50.toFixed(0)} | Tania: $${r.t50.toFixed(0)} | JC: $${r.totalJC.toFixed(0)}<br><div class="resultado ${r.deudaJuan > 0 ? `debe-juan` : `debe-tania`}" style="font-size:12px">${r.deudaJuan > 0 ? `JUAN DEBIÓ: $${r.deudaJuan.toFixed(0)}` : `TANIA DEBIÓ: $${Math.abs(r.deudaJuan).toFixed(0)}`}</div></div>`;
             });
             document.getElementById('lista-cierres').innerHTML = html;
         });
@@ -282,6 +273,3 @@
 </script>
 </body>
 </html>
-
-
-   
