@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -114,7 +115,7 @@
     const db = firebase.database();
     const ServerValue = firebase.database.ServerValue;
     
-    let fechaBalanceView = new Date(); // Para navegar meses
+    let fechaBalanceView = new Date();
     let balanceActual = {};
 
     const listas = {
@@ -145,16 +146,38 @@
         const inputMonto = document.getElementById(`monto-${tipo.toLowerCase()}`);
         const monto = parseFloat(inputMonto.value);
         let cuotas = (tipo === 'MENSUALES') ? (parseInt(document.getElementById('cuotas-mensuales').value) || 1) : 1;
+        
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
+        
         const promesas = [];
         const hoy = new Date();
+
         for(let i = 0; i < cuotas; i++) {
-            const fF = new Date(hoy.getFullYear(), hoy.getMonth() + i, 15);
+            let fF;
+            if (i === 0) {
+                // PRIMER GASTO (O GASTO ÚNICO): USA LA FECHA REAL DE HOY
+                fF = new Date();
+            } else {
+                // CUOTAS FUTURAS: USA DÍA 15 PARA SEGURIDAD DE MES
+                fF = new Date(hoy.getFullYear(), hoy.getMonth() + i, 15);
+            }
+
             const mesAnio = `${fF.getMonth() + 1}-${fF.getFullYear()}`;
             const nF = cuotas > 1 ? `${nota} (${i+1}/${cuotas})`.trim() : nota;
-            promesas.push(db.ref(`gastos_global`).push({ tipo, item, nota: nF, monto, pagador, fecha: fF.toISOString().split('T')[0], mesAnio, timestamp: ServerValue.TIMESTAMP }));
+            
+            promesas.push(db.ref(`gastos_global`).push({ 
+                tipo, item, nota: nF, monto, pagador, 
+                fecha: fF.toISOString().split('T')[0], 
+                mesAnio, 
+                timestamp: ServerValue.TIMESTAMP 
+            }));
         }
-        Promise.all(promesas).then(() => { alert("✅ GUARDADO"); inputMonto.value = ""; if(notaInput) notaInput.value = ""; });
+        
+        Promise.all(promesas).then(() => { 
+            alert("✅ GUARDADO"); 
+            inputMonto.value = ""; 
+            if(notaInput) { notaInput.value = ""; notaInput.style.display = "none"; }
+        });
     }
 
     function cargarHistorial() {
@@ -164,18 +187,15 @@
         db.ref(`gastos_global`).orderByChild('fecha').once('value', (s) => {
             let html = "", suma = 0, ultimoMes = "";
             const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-            
             s.forEach(c => {
                 const g = c.val();
                 if ((rubro === 'TODOS' || g.item === rubro) && (!desde || g.fecha >= desde) && (!hasta || g.fecha <= hasta)) {
                     const f = g.fecha.split('-');
                     const mesActual = `${meses[parseInt(f[1])-1]} ${f[0]}`;
-                    
                     if(mesActual !== ultimoMes) {
                         html += `<div class="mes-separador">--- ${mesActual} ---</div>`;
                         ultimoMes = mesActual;
                     }
-
                     suma += g.monto;
                     const esJC = (g.tipo === 'JC');
                     html += `<div class="historial-item ${esJC ? 'item-jc' : ''}">
@@ -200,7 +220,6 @@
         const meses = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
         const mesAnio = `${fechaBalanceView.getMonth() + 1}-${fechaBalanceView.getFullYear()}`;
         document.getElementById('titulo-mes-balance').innerText = `${meses[fechaBalanceView.getMonth()]} ${fechaBalanceView.getFullYear()}`;
-        
         db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
             let j50 = 0, t50 = 0, totalJC = 0;
             s.forEach(c => {
