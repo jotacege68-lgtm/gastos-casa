@@ -147,20 +147,39 @@
         let cuotas = (tipo === 'MENSUALES') ? (parseInt(document.getElementById('cuotas-mensuales').value) || 1) : 1;
         
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
-        
+
+        // --- VERIFICACIÓN DE DUPLICADOS PARA MENSUALES ---
+        if (tipo === 'MENSUALES' && item !== "CASA VARIOS" && item !== "VARIOS") {
+            const snapshot = await db.ref(`gastos_global`).once('value');
+            let yaExiste = false;
+            let mesConflicto = "";
+
+            snapshot.forEach(child => {
+                const g = child.val();
+                for (let i = 0; i < cuotas; i++) {
+                    const fCheck = new Date();
+                    fCheck.setMonth(fCheck.getMonth() + i);
+                    const mesAnioCheck = `${fCheck.getMonth() + 1}-${fCheck.getFullYear()}`;
+                    
+                    if (g.tipo === 'MENSUALES' && g.item === item && g.mesAnio === mesAnioCheck) {
+                        yaExiste = true;
+                        mesConflicto = mesAnioCheck;
+                    }
+                }
+            });
+
+            if (yaExiste) {
+                alert(`⚠️ ERROR: El rubro "${item}" ya está cargado en el mes ${mesConflicto}.`);
+                return;
+            }
+        }
+        // ------------------------------------------------
+
         const promesas = [];
         const hoy = new Date();
 
         for(let i = 0; i < cuotas; i++) {
-            let fF;
-            if (i === 0) {
-                // PRIMER GASTO (O GASTO ÚNICO): USA LA FECHA REAL DE HOY
-                fF = new Date();
-            } else {
-                // CUOTAS FUTURAS: USA DÍA 15 PARA SEGURIDAD DE MES
-                fF = new Date(hoy.getFullYear(), hoy.getMonth() + i, 15);
-            }
-
+            let fF = new Date(hoy.getFullYear(), hoy.getMonth() + i, (i === 0 ? hoy.getDate() : 15));
             const mesAnio = `${fF.getMonth() + 1}-${fF.getFullYear()}`;
             const nF = cuotas > 1 ? `${nota} (${i+1}/${cuotas})`.trim() : nota;
             
@@ -176,6 +195,7 @@
             alert("✅ GUARDADO"); 
             inputMonto.value = ""; 
             if(notaInput) { notaInput.value = ""; notaInput.style.display = "none"; }
+            if(tipo === 'MENSUALES') document.getElementById('cuotas-mensuales').value = "1";
         });
     }
 
@@ -262,3 +282,6 @@
 </script>
 </body>
 </html>
+
+
+   
