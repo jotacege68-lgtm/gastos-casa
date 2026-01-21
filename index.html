@@ -34,6 +34,7 @@
         .mes-separador { background: #334155; color: white; text-align: center; padding: 8px; font-weight: 900; font-size: 13px; border-radius: 8px; margin: 15px 0 10px 0; text-transform: uppercase; }
         .nav-balance { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .btn-nav { background: #64748b; color: white; padding: 10px 15px; border-radius: 10px; width: auto; margin: 0; }
+        .input-cuotas { border-color: #10b981; background: #f0fdf4; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -71,7 +72,9 @@
     <div class="card"><label>SOLO JC (DEUDA JUAN)</label>
     <select id="select-jc" onchange="toggleNota('jc')"></select>
     <input type="text" id="nota-jc" class="nota-input" placeholder="DETALLE DE TARJETA" style="display:none">
-    <input type="number" id="monto-jc" inputmode="decimal" placeholder="MONTO $">
+    <label style="color: #059669; font-size: 12px;">¿REPETIR MESES? (CUOTAS)</label>
+    <input type="number" id="cuotas-jc" class="input-cuotas" value="1" min="1" max="24">
+    <input type="number" id="monto-jc" inputmode="decimal" placeholder="MONTO POR MES $">
     <button class="btn-tania" onclick="guardarGasto('JC', 'TANIA')">PAGÓ TANIA</button></div>
 </div>
 
@@ -155,9 +158,11 @@
         const nota = (notaInput && notaInput.style.display !== 'none') ? notaInput.value : "";
         const inputMonto = document.getElementById(`monto-${tipo.toLowerCase()}`);
         const monto = parseFloat(inputMonto.value);
-        let cuotas = (tipo === 'MENSUALES') ? (parseInt(document.getElementById('cuotas-mensuales').value) || 1) : 1;
+        let cuotas = (tipo === 'MENSUALES' || tipo === 'JC') ? (parseInt(document.getElementById(`cuotas-${tipo.toLowerCase()}`).value) || 1) : 1;
+        
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
 
+        // Regla de duplicados solo para fijos mensuales
         if (tipo === 'MENSUALES' && item !== "CASA VARIOS" && item !== "VARIOS") {
             const snapshot = await db.ref(`gastos_global`).once('value');
             let yaExiste = false;
@@ -180,7 +185,12 @@
             const nF = cuotas > 1 ? `${nota} (${i+1}/${cuotas})`.trim() : nota;
             promesas.push(db.ref(`gastos_global`).push({ tipo, item, nota: nF, monto, pagador, fecha: fF.toISOString().split('T')[0], mesAnio, timestamp: ServerValue.TIMESTAMP }));
         }
-        Promise.all(promesas).then(() => { alert("✅ GUARDADO"); inputMonto.value = ""; if(notaInput) { notaInput.value = ""; notaInput.style.display = "none"; } });
+        Promise.all(promesas).then(() => { 
+            alert("✅ GUARDADO"); 
+            inputMonto.value = ""; 
+            if(notaInput) { notaInput.value = ""; notaInput.style.display = "none"; }
+            if(tipo === 'MENSUALES' || tipo === 'JC') document.getElementById(`cuotas-${tipo.toLowerCase()}`).value = "1";
+        });
     }
 
     function cargarHistorial() {
@@ -203,8 +213,6 @@
 
             if (filtro === 'FILTRO_JUAN' || filtro === 'FILTRO_TANIA') {
                 const persona = filtro === 'FILTRO_JUAN' ? 'JUAN' : 'TANIA';
-                
-                // Grupos
                 const d = gastos.filter(g => g.pagador === persona && g.tipo === 'DIARIOS');
                 const m = gastos.filter(g => g.pagador === persona && g.tipo === 'MENSUALES');
                 const jc = persona === 'JUAN' ? gastos.filter(g => g.tipo === 'JC') : [];
@@ -235,7 +243,6 @@
                     }
                 });
             }
-
             document.getElementById('lista-historial').innerHTML = html;
             document.getElementById('total-acumulado').innerText = `GRAN TOTAL: $${totalGeneral.toFixed(0)}`;
         });
