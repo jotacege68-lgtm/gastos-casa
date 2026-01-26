@@ -29,11 +29,8 @@
         .total-filtro { background: #1e293b; color: white; padding: 15px; border-radius: 12px; font-weight: 900; text-align: center; margin-bottom: 15px; border: 2px solid #fbbf24; }
         .subtotal-seccion { background: #e2e8f0; color: #1e293b; padding: 8px 15px; font-weight: 900; font-size: 14px; border-radius: 8px; margin: 10px 0; display: flex; justify-content: space-between; }
         .resultado { font-size: 1.1rem; font-weight: 900; text-align: center; margin-top: 15px; padding: 15px; border-radius: 15px; }
-        .debe-juan { background: #fee2e2; color: #991b1b; }
-        .debe-tania { background: #dcfce7; color: #166534; }
-        .mes-separador { background: #334155; color: white; text-align: center; padding: 8px; font-weight: 900; font-size: 13px; border-radius: 8px; margin: 15px 0 10px 0; text-transform: uppercase; }
-        .nav-balance { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .btn-nav { background: #64748b; color: white; padding: 10px 15px; border-radius: 10px; width: auto; margin: 0; }
+        .nav-balance, .nav-historial { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-nav { background: #64748b; color: white; padding: 10px 15px; border-radius: 10px; width: auto; margin: 0; cursor: pointer; }
         .input-cuotas { border-color: #10b981; background: #f0fdf4; font-weight: bold; }
     </style>
 </head>
@@ -80,18 +77,21 @@
 
 <div id="HISTORIAL" class="container">
     <div class="card">
-        <label>REPORTE POR PERSONA O RUBRO</label>
+        <label>FILTRAR POR RUBRO O PERSONA</label>
         <select id="filtro-rubro" onchange="cargarHistorial()">
             <option value="TODOS">--- TODOS LOS GASTOS ---</option>
             <option value="FILTRO_JUAN">--- PAGÓ JUAN (DIARIO+MENSUAL+JC) ---</option>
             <option value="FILTRO_TANIA">--- PAGÓ TANIA (DIARIO+MENSUAL) ---</option>
             <option value="FILTRO_JC">--- SOLO LISTA JC ---</option>
         </select>
-        <div class="filtro-group">
-            <input type="date" id="fecha-desde" onchange="cargarHistorial()">
-            <input type="date" id="fecha-hasta" onchange="cargarHistorial()">
-        </div>
     </div>
+    
+    <div class="nav-historial">
+        <button class="btn-nav" onclick="cambiarMesHistorial(-1)">◀</button>
+        <h3 id="titulo-mes-historial" style="margin:0">MES</h3>
+        <button class="btn-nav" onclick="cambiarMesHistorial(1)">▶</button>
+    </div>
+
     <div id="total-acumulado" class="total-filtro">Total: $0</div>
     <div id="lista-historial"></div>
 </div>
@@ -128,6 +128,7 @@
     const ServerValue = firebase.database.ServerValue;
     
     let fechaBalanceView = new Date();
+    let fechaHistorialView = new Date(); // Para navegar meses en Historial
     let balanceActual = {};
 
     const listas = {
@@ -162,7 +163,6 @@
         
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
 
-        // Regla de duplicados solo para fijos mensuales
         if (tipo === 'MENSUALES' && item !== "CASA VARIOS" && item !== "VARIOS") {
             const snapshot = await db.ref(`gastos_global`).once('value');
             let yaExiste = false;
@@ -185,27 +185,26 @@
             const nF = cuotas > 1 ? `${nota} (${i+1}/${cuotas})`.trim() : nota;
             promesas.push(db.ref(`gastos_global`).push({ tipo, item, nota: nF, monto, pagador, fecha: fF.toISOString().split('T')[0], mesAnio, timestamp: ServerValue.TIMESTAMP }));
         }
-        Promise.all(promesas).then(() => { 
-            alert("✅ GUARDADO"); 
-            inputMonto.value = ""; 
-            if(notaInput) { notaInput.value = ""; notaInput.style.display = "none"; }
-            if(tipo === 'MENSUALES' || tipo === 'JC') document.getElementById(`cuotas-${tipo.toLowerCase()}`).value = "1";
-        });
+        Promise.all(promesas).then(() => { alert("✅ GUARDADO"); inputMonto.value = ""; if(notaInput) { notaInput.value = ""; notaInput.style.display = "none"; } });
+    }
+
+    function cambiarMesHistorial(n) {
+        fechaHistorialView.setMonth(fechaHistorialView.getMonth() + n);
+        cargarHistorial();
     }
 
     function cargarHistorial() {
         const filtro = document.getElementById('filtro-rubro').value;
-        const desde = document.getElementById('fecha-desde').value;
-        const hasta = document.getElementById('fecha-hasta').value;
+        const mesesNombres = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+        const mesAnio = `${fechaHistorialView.getMonth() + 1}-${fechaHistorialView.getFullYear()}`;
+        document.getElementById('titulo-mes-historial').innerText = `${mesesNombres[fechaHistorialView.getMonth()]} ${fechaHistorialView.getFullYear()}`;
         
-        db.ref(`gastos_global`).orderByChild('fecha').once('value', (s) => {
+        db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
             let gastos = [];
             s.forEach(c => {
                 const g = c.val();
                 g.id = c.key;
-                if ((!desde || g.fecha >= desde) && (!hasta || g.fecha <= hasta)) {
-                    gastos.push(g);
-                }
+                gastos.push(g);
             });
 
             let html = "";
@@ -228,23 +227,16 @@
                 }
                 totalGeneral = sumD + sumM + sumJC;
             } else {
-                let ultimoMes = "";
-                const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
                 gastos.forEach(g => {
                     if (filtro === 'TODOS' || (filtro === 'FILTRO_JC' && g.tipo === 'JC') || g.item === filtro) {
-                        const f = g.fecha.split('-');
-                        const mesActual = `${meses[parseInt(f[1])-1]} ${f[0]}`;
-                        if(mesActual !== ultimoMes) {
-                            html += `<div class="mes-separador">--- ${mesActual} ---</div>`;
-                            ultimoMes = mesActual;
-                        }
                         html += itemHtml(g);
                         totalGeneral += g.monto;
                     }
                 });
             }
+
             document.getElementById('lista-historial').innerHTML = html;
-            document.getElementById('total-acumulado').innerText = `GRAN TOTAL: $${totalGeneral.toFixed(0)}`;
+            document.getElementById('total-acumulado').innerText = `TOTAL ${mesesNombres[fechaHistorialView.getMonth()]}: $${totalGeneral.toFixed(0)}`;
         });
     }
 
