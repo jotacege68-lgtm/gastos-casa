@@ -32,10 +32,8 @@
         .btn-nav { background: #64748b; color: white; padding: 10px 15px; border-radius: 10px; width: auto; margin: 0; cursor: pointer; }
         .input-cuotas { border-color: #10b981; background: #f0fdf4; font-weight: bold; }
         
-        /* ESTILOS PARA LA DISTINCIÓN EN MENSUAL */
-        .pago-item { padding: 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: white; }
-        .pago-item.pagado-si { background: #dcfce7; border-color: #10b981; }
-        .pago-item.pagado-si b { color: #065f46; text-decoration: line-through; opacity: 0.7; }
+        /* ESTILO LIMPIO PARA CONTROL DE PAGOS */
+        .pago-item { padding: 10px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: white; }
         .btn-check { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #cbd5e1; background: #f8fafc; color: transparent; cursor: pointer; font-weight: bold; }
         .btn-check.active { background: #10b981; border-color: #059669; color: white; }
         .seccion-titulo { font-size: 12px; font-weight: 900; color: #64748b; text-transform: uppercase; margin: 15px 0 10px 5px; }
@@ -186,7 +184,6 @@
         Promise.all(promesas).then(() => { alert("✅ GUARDADO"); inputMonto.value = ""; if(notaInput) { notaInput.value = ""; notaInput.style.display = "none"; } refrescarVistas(); });
     }
 
-    // NUEVA FUNCIÓN PARA EL BOTÓN DE "CHECK" EN MENSUAL
     function marcarPagadoVisual(id, estadoActual) {
         db.ref(`gastos_global/${id}`).update({ visualPagado: !estadoActual }).then(() => refrescarVistas());
     }
@@ -205,7 +202,7 @@
                 const g = c.val();
                 if(g.tipo === 'MENSUALES') {
                     const pagado = g.visualPagado || false;
-                    html += `<div class="pago-item ${pagado ? 'pagado-si' : ''}">
+                    html += `<div class="pago-item">
                         <div style="display:flex; align-items:center;">
                             <button class="btn-check ${pagado ? 'active' : ''}" onclick="marcarPagadoVisual('${c.key}', ${pagado})">✓</button>
                             <div><b>${g.item}</b><br><small>${g.nota || ''}</small></div>
