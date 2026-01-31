@@ -28,8 +28,7 @@
         .item-nota { font-size: 13px; color: #b45309; font-style: italic; font-weight: 600; background: #fef3c7; padding: 2px 5px; border-radius: 4px; }
         .total-filtro { background: #1e293b; color: white; padding: 15px; border-radius: 12px; font-weight: 900; text-align: center; margin-bottom: 15px; border: 2px solid #fbbf24; }
         .subtotal-seccion { background: #e2e8f0; color: #1e293b; padding: 8px 15px; font-weight: 900; font-size: 14px; border-radius: 8px; margin: 10px 0; display: flex; justify-content: space-between; }
-        .resultado { font-size: 1.1rem; font-weight: 900; text-align: center; margin-top: 15px; padding: 15px; border-radius: 15px; }
-        .nav-balance, .nav-historial { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .nav-historial { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .btn-nav { background: #64748b; color: white; padding: 10px 15px; border-radius: 10px; width: auto; margin: 0; cursor: pointer; }
         .input-cuotas { border-color: #10b981; background: #f0fdf4; font-weight: bold; }
     </style>
@@ -77,11 +76,11 @@
 
 <div id="HISTORIAL" class="container">
     <div class="card">
-        <label>FILTRAR POR RUBRO O PERSONA</label>
+        <label>REPORTE POR PERSONA O RUBRO</label>
         <select id="filtro-rubro" onchange="cargarHistorial()">
             <option value="TODOS">--- TODOS LOS GASTOS ---</option>
-            <option value="FILTRO_JUAN">--- PAGÓ JUAN (DIARIO+MENSUAL+JC) ---</option>
-            <option value="FILTRO_TANIA">--- PAGÓ TANIA (DIARIO+MENSUAL) ---</option>
+            <option value="FILTRO_JUAN">--- PAGÓ JUAN (DIARIO + MENSUAL) ---</option>
+            <option value="FILTRO_TANIA">--- PAGÓ TANIA (DIARIO + MENSUAL) ---</option>
             <option value="FILTRO_JC">--- SOLO LISTA JC ---</option>
         </select>
     </div>
@@ -128,7 +127,7 @@
     const ServerValue = firebase.database.ServerValue;
     
     let fechaBalanceView = new Date();
-    let fechaHistorialView = new Date(); // Para navegar meses en Historial
+    let fechaHistorialView = new Date();
     let balanceActual = {};
 
     const listas = {
@@ -212,8 +211,11 @@
 
             if (filtro === 'FILTRO_JUAN' || filtro === 'FILTRO_TANIA') {
                 const persona = filtro === 'FILTRO_JUAN' ? 'JUAN' : 'TANIA';
+                
+                // Grupos
                 const d = gastos.filter(g => g.pagador === persona && g.tipo === 'DIARIOS');
                 const m = gastos.filter(g => g.pagador === persona && g.tipo === 'MENSUALES');
+                // IMPORTANTE: JC ya no se suma al reporte "PAGÓ JUAN"
                 const jc = persona === 'JUAN' ? gastos.filter(g => g.tipo === 'JC') : [];
 
                 const sumD = d.reduce((acc, g) => acc + g.monto, 0);
@@ -222,10 +224,13 @@
 
                 html += `<div class="subtotal-seccion"><span>LISTA DIARIOS</span><span>$${sumD.toFixed(0)}</span></div>` + d.map(g => itemHtml(g)).join('');
                 html += `<div class="subtotal-seccion"><span>LISTA MENSUAL</span><span>$${sumM.toFixed(0)}</span></div>` + m.map(g => itemHtml(g)).join('');
-                if(persona === 'JUAN') {
-                    html += `<div class="subtotal-seccion"><span>LISTA SOLO JC</span><span>$${sumJC.toFixed(0)}</span></div>` + jc.map(g => itemHtml(g)).join('');
+                
+                // Si es Juan, se muestran los JC pero no se suman al total del reporte
+                if(persona === 'JUAN' && jc.length > 0) {
+                    html += `<div class="subtotal-seccion" style="background:#cbd5e1"><span>INFO: SOLO JC (No suma aquí)</span><span>$${sumJC.toFixed(0)}</span></div>` + jc.map(g => itemHtml(g)).join('');
                 }
-                totalGeneral = sumD + sumM + sumJC;
+                
+                totalGeneral = sumD + sumM; // El total del reporte solo incluye D y M
             } else {
                 gastos.forEach(g => {
                     if (filtro === 'TODOS' || (filtro === 'FILTRO_JC' && g.tipo === 'JC') || g.item === filtro) {
@@ -249,6 +254,7 @@
         </div>`;
     }
 
+    // Funciones de eliminación y balance se mantienen igual
     function eliminarGasto(id) { if(confirm("¿Borrar?")) db.ref(`gastos_global/${id}`).remove().then(()=>cargarHistorial()); }
     function cambiarMesBalance(n) { fechaBalanceView.setMonth(fechaBalanceView.getMonth() + n); calcularBalance(); }
 
