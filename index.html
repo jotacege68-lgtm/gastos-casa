@@ -31,12 +31,6 @@
         .nav-historial { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .btn-nav { background: #64748b; color: white; padding: 10px 15px; border-radius: 10px; width: auto; margin: 0; cursor: pointer; }
         .input-cuotas { border-color: #10b981; background: #f0fdf4; font-weight: bold; }
-        
-        /* ESTILO LIMPIO PARA CONTROL DE PAGOS */
-        .pago-item { padding: 10px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: white; }
-        .btn-check { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #cbd5e1; background: #f8fafc; color: transparent; cursor: pointer; font-weight: bold; }
-        .btn-check.active { background: #10b981; border-color: #059669; color: white; }
-        .seccion-titulo { font-size: 12px; font-weight: 900; color: #64748b; text-transform: uppercase; margin: 15px 0 10px 5px; }
     </style>
 </head>
 <body>
@@ -68,9 +62,6 @@
     <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="MONTO POR MES $">
     <button class="btn-juan" onclick="guardarGasto('MENSUALES', 'JUAN')">PAGÓ JUAN</button>
     <button class="btn-tania" onclick="guardarGasto('MENSUALES', 'TANIA')">PAGÓ TANIA</button></div>
-
-    <div class="seccion-titulo">Control de Pagos (Mes Seleccionado)</div>
-    <div id="lista-pagos-mensuales"></div>
 </div>
 
 <div id="JC" class="container">
@@ -90,6 +81,7 @@
             <option value="TODOS">--- TODOS LOS GASTOS ---</option>
             <option value="FILTRO_JUAN">--- PAGÓ JUAN (DIARIO + MENSUAL) ---</option>
             <option value="FILTRO_TANIA">--- PAGÓ TANIA (DIARIO + MENSUAL) ---</option>
+            <option value="FILTRO_MENSUALES">--- SOLO GASTOS MENSUALES ---</option>
             <option value="FILTRO_JC">--- SOLO LISTA JC ---</option>
         </select>
     </div>
@@ -156,7 +148,6 @@
         const inputMonto = document.getElementById(`monto-${tipo.toLowerCase()}`);
         const monto = parseFloat(inputMonto.value);
         let cuotas = (tipo === 'MENSUALES' || tipo === 'JC') ? (parseInt(document.getElementById(`cuotas-${tipo.toLowerCase()}`).value) || 1) : 1;
-        
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
 
         if (tipo === 'MENSUALES' && item !== "CASA VARIOS" && item !== "VARIOS") {
@@ -179,40 +170,14 @@
             let fF = new Date(hoy.getFullYear(), hoy.getMonth() + i, (i === 0 ? hoy.getDate() : 15));
             const mesAnio = `${fF.getMonth() + 1}-${fF.getFullYear()}`;
             const nF = cuotas > 1 ? `${nota} (${i+1}/${cuotas})`.trim() : nota;
-            promesas.push(db.ref(`gastos_global`).push({ tipo, item, nota: nF, monto, pagador, fecha: fF.toISOString().split('T')[0], mesAnio, visualPagado: false, timestamp: ServerValue.TIMESTAMP }));
+            promesas.push(db.ref(`gastos_global`).push({ tipo, item, nota: nF, monto, pagador, fecha: fF.toISOString().split('T')[0], mesAnio, timestamp: ServerValue.TIMESTAMP }));
         }
-        Promise.all(promesas).then(() => { alert("✅ GUARDADO"); inputMonto.value = ""; if(notaInput) { notaInput.value = ""; notaInput.style.display = "none"; } refrescarVistas(); });
-    }
-
-    function marcarPagadoVisual(id, estadoActual) {
-        db.ref(`gastos_global/${id}`).update({ visualPagado: !estadoActual }).then(() => refrescarVistas());
+        Promise.all(promesas).then(() => { alert("✅ GUARDADO"); inputMonto.value = ""; if(notaInput) notaInput.style.display = "none"; refrescarVistas(); });
     }
 
     function refrescarVistas() {
-        if(document.getElementById('MENSUALES').classList.contains('active')) cargarControlMensual();
         if(document.getElementById('HISTORIAL').classList.contains('active')) cargarHistorial();
         if(document.getElementById('BALANCE').classList.contains('active')) calcularBalance();
-    }
-
-    function cargarControlMensual() {
-        const mesAnio = `${fechaHistorialView.getMonth() + 1}-${fechaHistorialView.getFullYear()}`;
-        db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
-            let html = "";
-            s.forEach(c => {
-                const g = c.val();
-                if(g.tipo === 'MENSUALES') {
-                    const pagado = g.visualPagado || false;
-                    html += `<div class="pago-item">
-                        <div style="display:flex; align-items:center;">
-                            <button class="btn-check ${pagado ? 'active' : ''}" onclick="marcarPagadoVisual('${c.key}', ${pagado})">✓</button>
-                            <div><b>${g.item}</b><br><small>${g.nota || ''}</small></div>
-                        </div>
-                        <div style="text-align:right"><b>$${g.monto}</b></div>
-                    </div>`;
-                }
-            });
-            document.getElementById('lista-pagos-mensuales').innerHTML = html || "<small style='color:#64748b'>No hay mensuales este mes</small>";
-        });
     }
 
     function cambiarMesHistorial(n) { fechaHistorialView.setMonth(fechaHistorialView.getMonth() + n); refrescarVistas(); }
@@ -228,6 +193,7 @@
             s.forEach(c => { let g = c.val(); g.id = c.key; gastos.push(g); });
 
             let html = ""; let totalGeneral = 0;
+
             if (filtro === 'FILTRO_JUAN' || filtro === 'FILTRO_TANIA') {
                 const persona = filtro === 'FILTRO_JUAN' ? 'JUAN' : 'TANIA';
                 const d = gastos.filter(g => g.pagador === persona && g.tipo === 'DIARIOS');
@@ -243,7 +209,13 @@
                 }
                 totalGeneral = sumD + sumM;
             } else {
-                gastos.forEach(g => { if (filtro === 'TODOS' || (filtro === 'FILTRO_JC' && g.tipo === 'JC') || g.item === filtro) { html += itemHtml(g); totalGeneral += g.monto; } });
+                gastos.forEach(g => {
+                    let cumple = (filtro === 'TODOS') || 
+                                 (filtro === 'FILTRO_JC' && g.tipo === 'JC') || 
+                                 (filtro === 'FILTRO_MENSUALES' && g.tipo === 'MENSUALES') || 
+                                 (g.item === filtro);
+                    if (cumple) { html += itemHtml(g); totalGeneral += g.monto; }
+                });
             }
             document.getElementById('lista-historial').innerHTML = html;
             document.getElementById('total-acumulado').innerText = `TOTAL ${mesesNombres[fechaHistorialView.getMonth()]}: $${totalGeneral.toFixed(0)}`;
@@ -252,9 +224,8 @@
 
     function itemHtml(g) {
         const f = g.fecha.split('-');
-        const esJC = (g.tipo === 'JC');
-        return `<div class="card historial-item ${esJC ? 'item-jc' : ''}" style="margin-bottom:8px; padding:12px;">
-            <div><small>${f[2]}/${f[1]}/${f[0]}</small><br><b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">${esJC ? 'LISTA JC' : 'PAGÓ: ' + g.pagador}</span></div>
+        return `<div class="card historial-item ${g.tipo === 'JC' ? 'item-jc' : ''}" style="margin-bottom:8px; padding:12px;">
+            <div><small>${f[2]}/${f[1]}/${f[0]}</small><br><b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">${g.tipo === 'JC' ? 'LISTA JC' : 'PAGÓ: ' + g.pagador}</span></div>
             <div style="text-align:right"><b>$${g.monto}</b> <button style="width:auto;padding:5px 10px;background:#fee2e2;color:#ef4444" onclick="eliminarGasto('${g.id}')">X</button></div>
         </div>`;
     }
