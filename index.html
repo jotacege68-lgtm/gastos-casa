@@ -81,6 +81,7 @@
             <option value="FILTRO_CASA">--- GASTOS CASA (DIARIO+MENSUALES) ---</option>
             <option value="FILTRO_JUAN">--- PAGÓ JUAN (DIARIO + MENSUAL) ---</option>
             <option value="FILTRO_TANIA">--- PAGÓ TANIA (DIARIO + MENSUAL) ---</option>
+            <option value="FILTRO_COMIDA">--- GASTOS COMIDA (VARIOS) ---</option>
             <option value="FILTRO_MENSUALES">--- SOLO LISTA MENSUAL ---</option>
             <option value="FILTRO_JC">--- SOLO LISTA JC ---</option>
         </select>
@@ -212,6 +213,11 @@
                 const casa = gastos.filter(g => g.tipo === 'DIARIOS' || g.tipo === 'MENSUALES');
                 html = casa.map(g => itemHtml(g)).join('');
                 totalGeneral = casa.reduce((acc, g) => acc + g.monto, 0);
+            } else if (filtro === 'FILTRO_COMIDA') {
+                const rubrosComida = ["CARNICERIA", "SUPERMERCADO", "AVICOLA", "VERDULERIA", "FERIA VERDURA", "PIZZA", "EMPANADAS", "PESCADERIA", "FCA. PASTAS", "COMIDAS AFUERA", "PANADERIA", "PANADERIA S/G"];
+                const comida = gastos.filter(g => rubrosComida.includes(g.item));
+                html = comida.map(g => itemHtml(g)).join('');
+                totalGeneral = comida.reduce((acc, g) => acc + g.monto, 0);
             } else {
                 gastos.forEach(g => {
                     let cumple = (filtro === 'FILTRO_JC' && g.tipo === 'JC') || 
