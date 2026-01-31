@@ -81,7 +81,8 @@
             <option value="TODOS">--- TODOS LOS GASTOS ---</option>
             <option value="FILTRO_JUAN">--- PAGÓ JUAN (DIARIO + MENSUAL) ---</option>
             <option value="FILTRO_TANIA">--- PAGÓ TANIA (DIARIO + MENSUAL) ---</option>
-            <option value="FILTRO_MENSUALES">--- SOLO GASTOS MENSUALES ---</option>
+            <option value="FILTRO_CASA">--- GASTOS CASA (DIARIO+MENSUALES) ---</option>
+            <option value="FILTRO_MENSUALES">--- SOLO LISTA MENSUAL ---</option>
             <option value="FILTRO_JC">--- SOLO LISTA JC ---</option>
         </select>
     </div>
@@ -208,6 +209,10 @@
                     html += `<div class="subtotal-seccion" style="background:#cbd5e1"><span>INFO: SOLO JC (No suma aquí)</span><span>$${sumJC.toFixed(0)}</span></div>` + jc.map(g => itemHtml(g)).join('');
                 }
                 totalGeneral = sumD + sumM;
+            } else if (filtro === 'FILTRO_CASA') {
+                const casa = gastos.filter(g => g.tipo === 'DIARIOS' || g.tipo === 'MENSUALES');
+                html = casa.map(g => itemHtml(g)).join('');
+                totalGeneral = casa.reduce((acc, g) => acc + g.monto, 0);
             } else {
                 gastos.forEach(g => {
                     let cumple = (filtro === 'TODOS') || 
