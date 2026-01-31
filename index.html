@@ -136,7 +136,12 @@
     function cargarListas() {
         const comboHistorial = document.getElementById('filtro-rubro');
         const full = [...listas.diarios, ...listas.mensuales, ...listas.jc].sort();
-        full.forEach(i => comboHistorial.innerHTML += `<option value="${i}">${i}</option>`);
+        full.forEach(i => {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.innerText = i;
+            comboHistorial.appendChild(opt);
+        });
         listas.diarios.sort().forEach(i => document.getElementById('select-diarios').innerHTML += `<option value="${i}">${i}</option>`);
         listas.mensuales.sort().forEach(i => document.getElementById('select-mensuales').innerHTML += `<option value="${i}">${i}</option>`);
         listas.jc.sort().forEach(i => document.getElementById('select-jc').innerHTML += `<option value="${i}">${i}</option>`);
