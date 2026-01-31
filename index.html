@@ -78,10 +78,9 @@
     <div class="card">
         <label>REPORTE POR PERSONA O RUBRO</label>
         <select id="filtro-rubro" onchange="cargarHistorial()">
-            <option value="TODOS">--- TODOS LOS GASTOS ---</option>
+            <option value="FILTRO_CASA">--- GASTOS CASA (DIARIO+MENSUALES) ---</option>
             <option value="FILTRO_JUAN">--- PAGÓ JUAN (DIARIO + MENSUAL) ---</option>
             <option value="FILTRO_TANIA">--- PAGÓ TANIA (DIARIO + MENSUAL) ---</option>
-            <option value="FILTRO_CASA">--- GASTOS CASA (DIARIO+MENSUALES) ---</option>
             <option value="FILTRO_MENSUALES">--- SOLO LISTA MENSUAL ---</option>
             <option value="FILTRO_JC">--- SOLO LISTA JC ---</option>
         </select>
@@ -215,8 +214,7 @@
                 totalGeneral = casa.reduce((acc, g) => acc + g.monto, 0);
             } else {
                 gastos.forEach(g => {
-                    let cumple = (filtro === 'TODOS') || 
-                                 (filtro === 'FILTRO_JC' && g.tipo === 'JC') || 
+                    let cumple = (filtro === 'FILTRO_JC' && g.tipo === 'JC') || 
                                  (filtro === 'FILTRO_MENSUALES' && g.tipo === 'MENSUALES') || 
                                  (g.item === filtro);
                     if (cumple) { html += itemHtml(g); totalGeneral += g.monto; }
