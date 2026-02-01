@@ -371,14 +371,24 @@
 
     function cargarCierres() {
         db.ref(`cierres_mensuales`).once('value', (s) => {
-            let html = "";
+            let cierresArray = [];
             s.forEach(c => {
                 const r = c.val();
-                // Convertir "2-2026" a "FEBRERO 2026"
+                const partes = r.mesAnio.split('-');
+                // Creamos un valor numérico para ordenar (Año * 100 + Mes)
+                // Ejemplo: 2026-02 -> 202602
+                const valorOrden = parseInt(partes[1]) * 100 + parseInt(partes[0]);
+                cierresArray.push({ ...r, valorOrden });
+            });
+
+            // Ordenamos DESCENDENTE (el valor más grande arriba)
+            cierresArray.sort((a, b) => b.valorOrden - a.valorOrden);
+
+            let html = "";
+            cierresArray.forEach(r => {
                 const partes = r.mesAnio.split('-');
                 const nombreMes = mesesNombres[parseInt(partes[0]) - 1];
                 const etiquetaMes = `${nombreMes} ${partes[1]}`;
-                
                 const textoDeuda = r.deudaJuan > 0 ? `JUAN ADEUDA A TANIA` : `TANIA ADEUDA A JUAN`;
                 
                 html += `<div class="card">
@@ -403,6 +413,7 @@
 </script>
 </body>
 </html>
+
 
 
     
