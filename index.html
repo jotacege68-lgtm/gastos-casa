@@ -93,6 +93,7 @@
         .btn-cerrar { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
 
         .historial-item { padding: 18px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 8px; }
+        .item-pendiente { border-left: 5px solid #cbd5e1 !important; background: #f8fafc !important; opacity: 0.6; }
         .item-jc { border-left: 5px solid #8b5cf6 !important; background: #f5f3ff !important; }
         .item-pagador { font-size: 10px; font-weight: 800; color: #475569; background: #e2e8f0; padding: 6px 12px; border-radius: 20px; }
         .item-nota { font-size: 13px; color: #92400e; background: #fef3c7; padding: 6px 12px; border-radius: 8px; display: inline-block; margin-top: 6px; }
@@ -216,6 +217,7 @@
     let fechaBalanceView = new Date();
     let fechaHistorialView = new Date();
     let balanceActual = {};
+    const mesesNombres = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
 
     const listas = {
         diarios: ["AGUA", "AUTO GASTOS", "AVICOLA", "BOLSAS", "CARNICERIA", "CASA VARIOS", "COMBUSTIBLE", "COMIDAS AFUERA", "DENTISTA", "EMPANADAS", "FARMACIA", "FCA. PASTAS", "FERIA PAPEL/CAFE", "FERIA VARIOS", "FERIA VERDURA", "FERRETERIA", "GASTOS ARTIGAS", "GATA COMIDA-PIEDRAS", "LA MOLIENDA", "LAVANDERIA", "PANADERIA", "PANADERIA S/G", "PEAJES", "PESCADERIA", "PIZZA", "PROPINAS", "REGALOS", "SUPERGAS", "SUPERMERCADO", "VARIOS", "VERDULERIA", "VETERINARIA EXTRAS"],
@@ -231,13 +233,11 @@
     }
 
     function cargarListas() {
-        const meses = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
         const hoy = new Date();
-        
         ['diarios','mensuales','jc'].forEach(tab => {
             const mesSel = document.getElementById(`mes-${tab}`);
             const anioSel = document.getElementById(`anio-${tab}`);
-            meses.forEach((m, idx) => {
+            mesesNombres.forEach((m, idx) => {
                 const opt = document.createElement('option'); opt.value = idx + 1; opt.innerText = m;
                 if(idx === hoy.getMonth()) opt.selected = true;
                 mesSel.appendChild(opt);
@@ -265,7 +265,6 @@
         const nota = (notaInput && notaInput.style.display !== 'none') ? notaInput.value : "";
         const monto = parseFloat(document.getElementById(`monto-${tab}`).value);
         let cuotas = (tipo === 'MENSUALES' || tipo === 'JC') ? (parseInt(document.getElementById(`cuotas-${tab}`).value) || 1) : 1;
-        
         const mesElegido = parseInt(document.getElementById(`mes-${tab}`).value);
         const anioElegido = parseInt(document.getElementById(`anio-${tab}`).value);
 
@@ -295,20 +294,22 @@
         Promise.all(promesas).then(() => { alert("✅ GUARDADO"); document.getElementById(`monto-${tab}`).value = ""; if(notaInput) notaInput.style.display = "none"; refrescarVistas(); });
     }
 
-    // Funciones refrescarVistas, cargarHistorial, calcularBalance, etc., se mantienen exactamente igual
     function refrescarVistas() {
         if(document.getElementById('HISTORIAL').classList.contains('active')) cargarHistorial();
         if(document.getElementById('BALANCE').classList.contains('active')) calcularBalance();
     }
+
     function cambiarMesHistorial(n) { fechaHistorialView.setMonth(fechaHistorialView.getMonth() + n); refrescarVistas(); }
+
     function cargarHistorial() {
         const filtro = document.getElementById('filtro-rubro').value;
-        const mesesNombres = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
         const mesAnio = `${fechaHistorialView.getMonth() + 1}-${fechaHistorialView.getFullYear()}`;
         document.getElementById('titulo-mes-historial').innerText = `${mesesNombres[fechaHistorialView.getMonth()]} ${fechaHistorialView.getFullYear()}`;
+        
         db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
             let gastos = []; s.forEach(c => { let g = c.val(); g.id = c.key; gastos.push(g); });
             let html = ""; let totalGeneral = 0;
+
             if (filtro === 'FILTRO_JUAN' || filtro === 'FILTRO_TANIA') {
                 const persona = filtro === 'FILTRO_JUAN' ? 'JUAN' : 'TANIA';
                 const d = gastos.filter(g => g.pagador === persona && g.tipo === 'DIARIOS');
@@ -327,37 +328,71 @@
                 const comida = gastos.filter(g => rubrosComida.includes(g.item));
                 html = comida.map(g => itemHtml(g)).join('');
                 totalGeneral = comida.reduce((acc, g) => acc + g.monto, 0);
+            } else if (filtro === 'FILTRO_MENSUALES') {
+                const pagados = gastos.filter(g => g.tipo === 'MENSUALES');
+                const rPagados = pagados.map(g => g.item);
+                html += pagados.map(g => itemHtml(g)).join('');
+                const faltantes = listas.mensuales.filter(r => !rPagados.includes(r)).sort();
+                if(faltantes.length > 0) {
+                    html += `<div class="subtotal-seccion" style="background:#e2e8f0; color:#64748b;"><span>PENDIENTES DE CARGAR</span></div>`;
+                    html += faltantes.map(r => `<div class="historial-item item-pendiente"><div><b>${r}</b></div><div style="text-align:right; color:#94a3b8"><b>$0,0</b></div></div>`).join('');
+                }
+                totalGeneral = pagados.reduce((acc, g) => acc + g.monto, 0);
             } else {
-                gastos.forEach(g => {
-                    let cumple = (filtro === 'FILTRO_JC' && g.tipo === 'JC') || (filtro === 'FILTRO_MENSUALES' && g.tipo === 'MENSUALES') || (g.item === filtro);
-                    if (cumple) { html += itemHtml(g); totalGeneral += g.monto; }
-                });
+                gastos.forEach(g => { if ((filtro === 'FILTRO_JC' && g.tipo === 'JC') || (g.item === filtro)) { html += itemHtml(g); totalGeneral += g.monto; } });
             }
             document.getElementById('lista-historial').innerHTML = html;
             document.getElementById('total-acumulado').innerText = `$${totalGeneral.toFixed(0)}`;
         });
     }
+
     function itemHtml(g) {
         return `<div class="historial-item ${g.tipo === 'JC' ? 'item-jc' : ''}">
             <div><small>${g.fecha.split('-')[2]}/${g.fecha.split('-')[1]}</small><br><b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">${g.tipo === 'JC' ? 'JC' : 'PAGÓ: ' + g.pagador}</span></div>
             <div style="text-align:right"><b>$${g.monto}</b> <button style="width:auto;padding:5px 10px;background:#fee2e2;color:#ef4444;margin-left:10px" onclick="eliminarGasto('${g.id}')">X</button></div>
         </div>`;
     }
+
     function eliminarGasto(id) { if(confirm("¿Borrar?")) db.ref(`gastos_global/${id}`).remove().then(()=>refrescarVistas()); }
     function cambiarMesBalance(n) { fechaBalanceView.setMonth(fechaBalanceView.getMonth() + n); refrescarVistas(); }
     function calcularBalance() {
         const mesAnio = `${fechaBalanceView.getMonth() + 1}-${fechaBalanceView.getFullYear()}`;
-        document.getElementById('titulo-mes-balance').innerText = `${["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"][fechaBalanceView.getMonth()]} ${fechaBalanceView.getFullYear()}`;
+        document.getElementById('titulo-mes-balance').innerText = `${mesesNombres[fechaBalanceView.getMonth()]} ${fechaBalanceView.getFullYear()}`;
         db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
             let j50 = 0, t50 = 0, totalJC = 0;
             s.forEach(c => { const g = c.val(); if (g.tipo === 'JC') totalJC += g.monto; else if (g.pagador === 'JUAN') j50 += g.monto; else if (g.pagador === 'TANIA') t50 += g.monto; });
             const debe = ((j50 + t50) / 2 - j50) + totalJC;
             balanceActual = { j50, t50, totalJC, deudaJuan: debe, mesAnio };
-            document.getElementById('resumen-balance').innerHTML = `<div class="balance-item"><span class="label">Juan:</span> <span class="value">$${j50}</span></div><div class="balance-item"><span class="label">Tania:</span> <span class="value">$${t50}</span></div><div class="balance-item"><span class="label">JC:</span> <span class="value">$${totalJC}</span></div><div class="resultado ${debe > 0 ? 'debe-juan' : 'debe-tania'}">${debe > 0 ? `JUAN DEBE: $${debe.toFixed(0)}` : `TANIA DEBE: $${Math.abs(debe).toFixed(0)}`}</div>`;
+            document.getElementById('resumen-balance').innerHTML = `<div class="balance-item"><span class="label">Juan:</span> <span class="value">$${j50}</span></div><div class="balance-item"><span class="label">Tania:</span> <span class="value">$${t50}</span></div><div class="balance-item"><span class="label">JC:</span> <span class="value">$${totalJC}</span></div><div class="resultado ${debe > 0 ? 'debe-juan' : 'debe-tania'}">${debe > 0 ? `JUAN ADEUDA A TANIA: $${debe.toFixed(0)}` : `TANIA ADEUDA A JUAN: $${Math.abs(debe).toFixed(0)}`}</div>`;
         });
     }
+
     function cerrarMes() { if(confirm("¿Guardar cierre?")) db.ref(`cierres_mensuales/${balanceActual.mesAnio}`).set({ ...balanceActual, fechaCierre: new Date().toISOString() }).then(() => alert("🔒 Guardado")); }
-    function cargarCierres() { db.ref(`cierres_mensuales`).once('value', (s) => { let html = ""; s.forEach(c => { const r = c.val(); html += `<div class="card"><b>${r.mesAnio}</b><br>Juan: $${r.j50} | Tania: $${r.t50}<br><div class="resultado ${r.deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}" style="font-size:14px; padding:10px">${r.deudaJuan > 0 ? 'JUAN DEBIÓ' : 'TANIA DEBIÓ'}: $${Math.abs(r.deudaJuan).toFixed(0)}</div></div>`; }); document.getElementById('lista-cierres').innerHTML = html; }); }
+
+    function cargarCierres() {
+        db.ref(`cierres_mensuales`).once('value', (s) => {
+            let html = "";
+            s.forEach(c => {
+                const r = c.val();
+                // Convertir "2-2026" a "FEBRERO 2026"
+                const partes = r.mesAnio.split('-');
+                const nombreMes = mesesNombres[parseInt(partes[0]) - 1];
+                const etiquetaMes = `${nombreMes} ${partes[1]}`;
+                
+                const textoDeuda = r.deudaJuan > 0 ? `JUAN ADEUDA A TANIA` : `TANIA ADEUDA A JUAN`;
+                
+                html += `<div class="card">
+                    <b style="color:var(--juan-dark)">${etiquetaMes}</b><br>
+                    <small>Juan: $${r.j50} | Tania: $${r.t50} | JC: $${r.totalJC}</small><br>
+                    <div class="resultado ${r.deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}" style="font-size:14px; padding:10px; margin-top:10px">
+                        ${textoDeuda}: $${Math.abs(r.deudaJuan).toFixed(0)}
+                    </div>
+                </div>`;
+            });
+            document.getElementById('lista-cierres').innerHTML = html;
+        });
+    }
+
     function showTab(id, btn) {
         document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -368,3 +403,6 @@
 </script>
 </body>
 </html>
+
+
+    
