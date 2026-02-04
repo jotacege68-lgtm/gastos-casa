@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>App Gastos PRO 2026 - Premium Edition</title>
+    <title>App Gastos T+J</title>
     
     <link rel="apple-touch-icon" href="https://i.ibb.co/C5f3W1N/logo-casa-tj-azul.png">
     <link rel="icon" type="image/png" href="https://i.ibb.co/C5f3W1N/logo-casa-tj-azul.png">
@@ -21,36 +21,27 @@
             --tania: #ec4899;
             --tania-light: #f472b6;
             --tania-dark: #db2777;
-            --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* FONTO VIOLETA DEGRADADO */
+            --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --card-bg: #ffffff;
             --text-main: #1e293b;
             --text-muted: #64748b;
             --header-h: 75px;
             --radius: 20px;
-            --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
             --shadow-md: 0 4px 20px rgba(0,0,0,0.12);
-            --shadow-lg: 0 8px 30px rgba(0,0,0,0.16);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: #f0f4f8; /* Fondo de la página */
-            margin: 0; 
-            padding-top: calc(var(--header-h) + 20px); 
-            color: var(--text-main); 
-            min-height: 100vh;
+            background: #f0f4f8; margin: 0; padding-top: calc(var(--header-h) + 20px); 
+            color: var(--text-main); min-height: 100vh;
         }
 
-        /* BARRA DE NAVEGACIÓN SUPERIOR (VIOLETA) */
         .tabs { 
-            position: fixed; top: 0; width: 100%; 
-            background: var(--bg);
-            display: flex; height: var(--header-h); 
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-            z-index: 1000; overflow-x: auto; scrollbar-width: none;
-            backdrop-filter: blur(10px);
+            position: fixed; top: 0; width: 100%; background: var(--bg);
+            display: flex; height: var(--header-h); box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            z-index: 1000; overflow-x: auto; scrollbar-width: none; backdrop-filter: blur(10px);
         }
         .tabs::-webkit-scrollbar { display: none; }
 
@@ -59,7 +50,7 @@
             font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, 0.7);
             text-transform: uppercase; cursor: pointer; padding: 10px 8px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative;
+            transition: all 0.3s ease; position: relative;
         }
 
         .tab-btn.active { color: #ffffff !important; background: rgba(255, 255, 255, 0.15); }
@@ -68,54 +59,41 @@
             width: 80%; height: 3px; background: white; border-radius: 3px 3px 0 0;
         }
 
-        .container { 
-            padding: 16px; display: none; max-width: 500px; margin: auto; 
-            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .container { padding: 16px; display: none; max-width: 500px; margin: auto; animation: slideUp 0.4s ease; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .container.active { display: block; }
 
-        /* TARJETAS BLANCAS */
         .card { 
             background: var(--card-bg); padding: 24px; border-radius: var(--radius); 
-            margin-bottom: 16px; box-shadow: var(--shadow-md);
-            border: 1px solid rgba(0,0,0,0.05); position: relative;
+            margin-bottom: 16px; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.05);
         }
 
         label { display: block; margin-bottom: 10px; font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; }
         select, input { 
             width: 100%; padding: 18px 16px; margin-bottom: 16px; border: 2px solid #e2e8f0; 
             border-radius: 14px; font-size: 16px; color: var(--text-main); background: #f8fafc;
-            transition: all 0.3s ease; font-weight: 500;
         }
-        select:focus, input:focus { outline: none; border-color: var(--juan); background: #fff; transform: translateY(-2px); }
 
         .row { display: flex; gap: 10px; }
         .row div { flex: 1; }
 
-        /* BOTONES DE COLORES */
-        button { 
-            width: 100%; padding: 20px; margin-bottom: 14px; border: none; border-radius: 16px; 
-            font-weight: 800; font-size: 16px; cursor: pointer; text-transform: uppercase;
-        }
+        button { width: 100%; padding: 20px; margin-bottom: 14px; border: none; border-radius: 16px; font-weight: 800; font-size: 16px; cursor: pointer; text-transform: uppercase; }
         .btn-juan { background: linear-gradient(135deg, var(--juan-light) 0%, var(--juan-dark) 100%); color: white; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
         .btn-tania { background: linear-gradient(135deg, var(--tania-light) 0%, var(--tania-dark) 100%); color: white; box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4); }
-        .btn-cerrar { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
+        .btn-cerrar { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
 
         .historial-item { padding: 18px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 8px; }
-        .item-pendiente { border-left: 5px solid #cbd5e1 !important; background: #f8fafc !important; opacity: 0.6; }
-        .item-jc { border-left: 5px solid #8b5cf6 !important; background: #f5f3ff !important; }
         .item-pagador { font-size: 10px; font-weight: 800; color: #475569; background: #e2e8f0; padding: 6px 12px; border-radius: 20px; }
         .item-nota { font-size: 13px; color: #92400e; background: #fef3c7; padding: 6px 12px; border-radius: 8px; display: inline-block; margin-top: 6px; }
 
-        .total-filtro { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #fbbf24; padding: 28px; border-radius: var(--radius); font-weight: 900; font-size: 28px; text-align: center; margin-bottom: 24px; box-shadow: var(--shadow-lg); }
+        .total-filtro { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #fbbf24; padding: 28px; border-radius: var(--radius); font-weight: 900; font-size: 28px; text-align: center; margin-bottom: 24px; }
         .subtotal-seccion { background: #f1f5f9; color: var(--text-main); padding: 14px 18px; font-weight: 800; font-size: 14px; border-radius: 12px; margin: 18px 0 10px 0; border-left: 5px solid #cbd5e1; }
         
-        .nav-historial, .nav-balance { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: white; padding: 14px; border-radius: 16px; box-shadow: var(--shadow-sm); }
-        .btn-nav { background: #f1f5f9; color: var(--text-main); padding: 14px 24px; border-radius: 12px; width: auto; margin: 0; font-weight: 700; }
+        .nav-historial, .nav-balance { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: white; padding: 14px; border-radius: 16px; }
+        .btn-nav { background: #f1f5f9; color: var(--text-main); padding: 14px 24px; border-radius: 12px; width: auto; font-weight: 700; }
 
         .balance-item { display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px dashed #e2e8f0; }
-        .resultado { margin-top: 24px; padding: 24px; border-radius: 16px; text-align: center; font-weight: 900; font-size: 22px; box-shadow: var(--shadow-md); }
+        .resultado { margin-top: 24px; padding: 24px; border-radius: 16px; text-align: center; font-weight: 900; font-size: 22px; }
         .debe-juan { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #b91c1c; border: 2px solid #fca5a5; }
         .debe-tania { background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); color: #9d174d; border: 2px solid #f9a8d4; }
     </style>
@@ -134,13 +112,10 @@
 <div id="DIARIOS" class="container active">
     <div class="card">
         <label>MES DE CARGA</label>
-        <div class="row">
-            <div><select id="mes-diarios"></select></div>
-            <div><select id="anio-diarios"></select></div>
-        </div>
+        <div class="row"><div><select id="mes-diarios"></select></div><div><select id="anio-diarios"></select></div></div>
         <label>RUBRO DIARIO (50/50)</label>
         <select id="select-diarios" onchange="toggleNota('diarios')"></select>
-        <input type="text" id="nota-diarios" class="nota-input" placeholder="DETALLE / CONCEPTO" style="display:none">
+        <input type="text" id="nota-diarios" placeholder="DETALLE" style="display:none">
         <input type="number" id="monto-diarios" inputmode="decimal" placeholder="MONTO $">
         <button class="btn-juan" onclick="guardarGasto('DIARIOS', 'JUAN')">PAGÓ JUAN</button>
         <button class="btn-tania" onclick="guardarGasto('DIARIOS', 'TANIA')">PAGÓ TANIA</button>
@@ -150,13 +125,10 @@
 <div id="MENSUALES" class="container">
     <div class="card">
         <label>MES DE CARGA</label>
-        <div class="row">
-            <div><select id="mes-mensuales"></select></div>
-            <div><select id="anio-mensuales"></select></div>
-        </div>
+        <div class="row"><div><select id="mes-mensuales"></select></div><div><select id="anio-mensuales"></select></div></div>
         <label>RUBRO MENSUAL (50/50)</label>
         <select id="select-mensuales" onchange="toggleNota('mensuales')"></select>
-        <input type="text" id="nota-mensuales" class="nota-input" placeholder="DETALLE / CONCEPTO" style="display:none">
+        <input type="text" id="nota-mensuales" placeholder="DETALLE" style="display:none">
         <label>CUOTAS</label>
         <input type="number" id="cuotas-mensuales" value="1" min="1" max="24">
         <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="MONTO POR MES $">
@@ -168,13 +140,10 @@
 <div id="JC" class="container">
     <div class="card">
         <label>MES DE CARGA</label>
-        <div class="row">
-            <div><select id="mes-jc"></select></div>
-            <div><select id="anio-jc"></select></div>
-        </div>
+        <div class="row"><div><select id="mes-jc"></select></div><div><select id="anio-jc"></select></div></div>
         <label>RUBRO JC (DEUDA JUAN)</label>
         <select id="select-jc" onchange="toggleNota('jc')"></select>
-        <input type="text" id="nota-jc" class="nota-input" placeholder="DETALLE TARJETA" style="display:none">
+        <input type="text" id="nota-jc" placeholder="DETALLE" style="display:none">
         <label>CUOTAS</label>
         <input type="number" id="cuotas-jc" value="1" min="1" max="24">
         <input type="number" id="monto-jc" inputmode="decimal" placeholder="MONTO POR MES $">
@@ -184,7 +153,7 @@
 
 <div id="HISTORIAL" class="container">
     <div class="card">
-        <label>REPORTE POR PERSONA O RUBRO</label>
+        <label>FILTRAR POR RUBRO</label>
         <select id="filtro-rubro" onchange="cargarHistorial()">
             <option value="FILTRO_CASA">GASTOS CASA (DIARIO+MENSUALES)</option>
             <option value="FILTRO_JUAN">PAGÓ JUAN (DIARIO + MENSUAL)</option>
@@ -209,21 +178,6 @@
 <div id="RESUMENES" class="container"><div id="lista-cierres"></div></div>
 
 <script>
-    // Manifesto Dinámico para el Logo Azul
-    const manifest = {
-      "name": "Gastos T+J",
-      "short_name": "T+J",
-      "display": "standalone",
-      "start_url": ".",
-      "icons": [
-        { "src": "https://i.ibb.co/C5f3W1N/logo-casa-tj-azul.png", "sizes": "192x192", "type": "image/png" },
-        { "src": "https://i.ibb.co/C5f3W1N/logo-casa-tj-azul.png", "sizes": "512x512", "type": "image/png" }
-      ]
-    };
-    const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-    const manifestURL = URL.createObjectURL(blob);
-    document.querySelector('head').innerHTML += `<link rel="manifest" href="${manifestURL}">`;
-
     const firebaseConfig = {
       apiKey: "AIzaSyBDlHjKXf33pCEznyLAmFrTDXVPevrHe9Q",
       authDomain: "gastoscasa-d8bc2.firebaseapp.com",
@@ -237,7 +191,6 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const ServerValue = firebase.database.ServerValue;
     
     let fechaBalanceView = new Date();
     let fechaHistorialView = new Date();
@@ -273,7 +226,6 @@
                 anioSel.appendChild(opt);
             }
         });
-
         const comboHistorial = document.getElementById('filtro-rubro');
         [...listas.diarios, ...listas.mensuales, ...listas.jc].sort().forEach(i => {
             const opt = document.createElement('option'); opt.value = i; opt.innerText = i; comboHistorial.appendChild(opt);
@@ -292,92 +244,51 @@
         let cuotas = (tipo === 'MENSUALES' || tipo === 'JC') ? (parseInt(document.getElementById(`cuotas-${tab}`).value) || 1) : 1;
         const mesElegido = parseInt(document.getElementById(`mes-${tab}`).value);
         const anioElegido = parseInt(document.getElementById(`anio-${tab}`).value);
-
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
-
-        if (tipo === 'MENSUALES' && item !== "CASA VARIOS" && item !== "VARIOS") {
-            const snapshot = await db.ref(`gastos_global`).once('value');
-            let yaExiste = false;
-            snapshot.forEach(child => {
-                const g = child.val();
-                for (let i = 0; i < cuotas; i++) {
-                    let fCheck = new Date(anioElegido, mesElegido - 1 + i, 15);
-                    const mesAnioCheck = `${fCheck.getMonth() + 1}-${fCheck.getFullYear()}`;
-                    if (g.tipo === 'MENSUALES' && g.item === item && g.mesAnio === mesAnioCheck) yaExiste = true;
-                }
-            });
-            if (yaExiste) { alert(`⚠️ ERROR: El rubro "${item}" ya está cargado.`); return; }
-        }
 
         const promesas = [];
         for(let i = 0; i < cuotas; i++) {
             let fF = new Date(anioElegido, mesElegido - 1 + i, 15);
             const mesAnio = `${fF.getMonth() + 1}-${fF.getFullYear()}`;
             const nF = cuotas > 1 ? `${nota} (${i+1}/${cuotas})`.trim() : nota;
-            promesas.push(db.ref(`gastos_global`).push({ tipo, item, nota: nF, monto, pagador, fecha: fF.toISOString().split('T')[0], mesAnio, timestamp: ServerValue.TIMESTAMP }));
+            promesas.push(db.ref(`gastos_global`).push({ tipo, item, nota: nF, monto, pagador, fecha: fF.toISOString().split('T')[0], mesAnio }));
         }
-        Promise.all(promesas).then(() => { alert("✅ GUARDADO"); document.getElementById(`monto-${tab}`).value = ""; if(notaInput) notaInput.style.display = "none"; refrescarVistas(); });
+        Promise.all(promesas).then(() => { alert("✅ GUARDADO"); document.getElementById(`monto-${tab}`).value = ""; refrescarVistas(); });
     }
 
     function refrescarVistas() {
         if(document.getElementById('HISTORIAL').classList.contains('active')) cargarHistorial();
         if(document.getElementById('BALANCE').classList.contains('active')) calcularBalance();
     }
-
     function cambiarMesHistorial(n) { fechaHistorialView.setMonth(fechaHistorialView.getMonth() + n); refrescarVistas(); }
 
     function cargarHistorial() {
         const filtro = document.getElementById('filtro-rubro').value;
         const mesAnio = `${fechaHistorialView.getMonth() + 1}-${fechaHistorialView.getFullYear()}`;
         document.getElementById('titulo-mes-historial').innerText = `${mesesNombres[fechaHistorialView.getMonth()]} ${fechaHistorialView.getFullYear()}`;
-        
         db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
             let gastos = []; s.forEach(c => { let g = c.val(); g.id = c.key; gastos.push(g); });
             let html = ""; let totalGeneral = 0;
-
             if (filtro === 'FILTRO_JUAN' || filtro === 'FILTRO_TANIA') {
                 const persona = filtro === 'FILTRO_JUAN' ? 'JUAN' : 'TANIA';
                 const d = gastos.filter(g => g.pagador === persona && g.tipo === 'DIARIOS');
                 const m = gastos.filter(g => g.pagador === persona && g.tipo === 'MENSUALES');
-                const jc = persona === 'JUAN' ? gastos.filter(g => g.tipo === 'JC') : [];
                 html += `<div class="subtotal-seccion"><span>DIARIOS</span><span>$${d.reduce((a,b)=>a+b.monto,0)}</span></div>` + d.map(g => itemHtml(g)).join('');
                 html += `<div class="subtotal-seccion"><span>MENSUALES</span><span>$${m.reduce((a,b)=>a+b.monto,0)}</span></div>` + m.map(g => itemHtml(g)).join('');
-                if(persona === 'JUAN' && jc.length > 0) html += `<div class="subtotal-seccion" style="background:#cbd5e1"><span>INFO JC</span><span>$${jc.reduce((a,b)=>a+b.monto,0)}</span></div>` + jc.map(g => itemHtml(g)).join('');
                 totalGeneral = d.reduce((a,b)=>a+b.monto,0) + m.reduce((a,b)=>a+b.monto,0);
-            } else if (filtro === 'FILTRO_CASA') {
-                const casa = gastos.filter(g => g.tipo === 'DIARIOS' || g.tipo === 'MENSUALES');
-                html = casa.map(g => itemHtml(g)).join('');
-                totalGeneral = casa.reduce((acc, g) => acc + g.monto, 0);
-            } else if (filtro === 'FILTRO_COMIDA') {
-                const rubrosComida = ["CARNICERIA", "SUPERMERCADO", "AVICOLA", "VERDULERIA", "FERIA VERDURA", "PIZZA", "EMPANADAS", "PESCADERIA", "FCA. PASTAS", "COMIDAS AFUERA", "PANADERIA", "PANADERIA S/G"];
-                const comida = gastos.filter(g => rubrosComida.includes(g.item));
-                html = comida.map(g => itemHtml(g)).join('');
-                totalGeneral = comida.reduce((acc, g) => acc + g.monto, 0);
-            } else if (filtro === 'FILTRO_MENSUALES') {
-                const pagados = gastos.filter(g => g.tipo === 'MENSUALES');
-                const rPagados = pagados.map(g => g.item);
-                html += pagados.map(g => itemHtml(g)).join('');
-                const faltantes = listas.mensuales.filter(r => !rPagados.includes(r)).sort();
-                if(faltantes.length > 0) {
-                    html += `<div class="subtotal-seccion" style="background:#e2e8f0; color:#64748b;"><span>PENDIENTES DE CARGAR</span></div>`;
-                    html += faltantes.map(r => `<div class="historial-item item-pendiente"><div><b>${r}</b></div><div style="text-align:right; color:#94a3b8"><b>$0,0</b></div></div>`).join('');
-                }
-                totalGeneral = pagados.reduce((acc, g) => acc + g.monto, 0);
             } else {
-                gastos.forEach(g => { if ((filtro === 'FILTRO_JC' && g.tipo === 'JC') || (g.item === filtro)) { html += itemHtml(g); totalGeneral += g.monto; } });
+                gastos.forEach(g => { if ((filtro === 'FILTRO_JC' && g.tipo === 'JC') || (filtro === 'FILTRO_CASA' && (g.tipo === 'DIARIOS' || g.tipo === 'MENSUALES')) || (g.item === filtro)) { html += itemHtml(g); totalGeneral += g.monto; } });
             }
             document.getElementById('lista-historial').innerHTML = html;
             document.getElementById('total-acumulado').innerText = `$${totalGeneral.toFixed(0)}`;
         });
     }
-
     function itemHtml(g) {
         return `<div class="historial-item ${g.tipo === 'JC' ? 'item-jc' : ''}">
-            <div><small>${g.fecha.split('-')[2]}/${g.fecha.split('-')[1]}</small><br><b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">${g.tipo === 'JC' ? 'JC' : 'PAGÓ: ' + g.pagador}</span></div>
+            <div><small>${g.fecha.split('-')[2]}/${g.fecha.split('-')[1]}</small><br><b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">PAGÓ: ${g.pagador}</span></div>
             <div style="text-align:right"><b>$${g.monto}</b> <button style="width:auto;padding:5px 10px;background:#fee2e2;color:#ef4444;margin-left:10px" onclick="eliminarGasto('${g.id}')">X</button></div>
         </div>`;
     }
-
     function eliminarGasto(id) { if(confirm("¿Borrar?")) db.ref(`gastos_global/${id}`).remove().then(()=>refrescarVistas()); }
     function cambiarMesBalance(n) { fechaBalanceView.setMonth(fechaBalanceView.getMonth() + n); refrescarVistas(); }
     function calcularBalance() {
@@ -391,31 +302,28 @@
             document.getElementById('resumen-balance').innerHTML = `<div class="balance-item"><span class="label">Juan:</span> <span class="value">$${j50}</span></div><div class="balance-item"><span class="label">Tania:</span> <span class="value">$${t50}</span></div><div class="balance-item"><span class="label">JC:</span> <span class="value">$${totalJC}</span></div><div class="resultado ${debe > 0 ? 'debe-juan' : 'debe-tania'}">${debe > 0 ? `JUAN ADEUDA A TANIA: $${debe.toFixed(0)}` : `TANIA ADEUDA A JUAN: $${Math.abs(debe).toFixed(0)}`}</div>`;
         });
     }
-
-    function cerrarMes() { if(confirm("¿Guardar cierre?")) db.ref(`cierres_mensuales/${balanceActual.mesAnio}`).set({ ...balanceActual, fechaCierre: new Date().toISOString() }).then(() => alert("🔒 Guardado")); }
-
+    function cerrarMes() { if(confirm("¿Guardar cierre?")) db.ref(`cierres_mensuales/${balanceActual.mesAnio}`).set({ ...balanceActual, timestamp: Date.now() }).then(() => alert("🔒 Guardado")); }
     function cargarCierres() {
         db.ref(`cierres_mensuales`).once('value', (s) => {
-            let html = "";
+            let cierres = [];
             s.forEach(c => {
-                const r = c.val();
-                const partes = r.mesAnio.split('-');
-                const nombreMes = mesesNombres[parseInt(partes[0]) - 1];
-                const etiquetaMes = `${nombreMes} ${partes[1]}`;
-                const textoDeuda = r.deudaJuan > 0 ? `JUAN ADEUDA A TANIA` : `TANIA ADEUDA A JUAN`;
-                
-                html += `<div class="card">
-                    <b style="color:var(--juan-dark)">${etiquetaMes}</b><br>
-                    <small>Juan: $${r.j50} | Tania: $${r.t50} | JC: $${r.totalJC}</small><br>
-                    <div class="resultado ${r.deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}" style="font-size:14px; padding:10px; margin-top:10px">
-                        ${textoDeuda}: $${Math.abs(r.deudaJuan).toFixed(0)}
-                    </div>
-                </div>`;
+                let r = c.val();
+                let partes = r.mesAnio.split('-'); // "2-2026" -> [2, 2026]
+                // Creamos un valor numérico para ordenar: Año * 100 + Mes (ej: 202602)
+                r.sortKey = parseInt(partes[1]) * 100 + parseInt(partes[0]);
+                cierres.push(r);
+            });
+            // Ordenar DESCENDENTE (el más reciente arriba)
+            cierres.sort((a, b) => b.sortKey - a.sortKey);
+            let html = "";
+            cierres.forEach(r => {
+                const p = r.mesAnio.split('-');
+                const etiqueta = `${mesesNombres[parseInt(p[0])-1]} ${p[1]}`;
+                html += `<div class="card"><b>${etiqueta}</b><br><small>Juan: $${r.j50} | Tania: $${r.t50} | JC: $${r.totalJC}</small><br><div class="resultado ${r.deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}" style="font-size:14px; padding:10px; margin-top:10px">${r.deudaJuan > 0 ? 'JUAN ADEUDA A TANIA' : 'TANIA ADEUDA A JUAN'}: $${Math.abs(r.deudaJuan).toFixed(0)}</div></div>`;
             });
             document.getElementById('lista-cierres').innerHTML = html;
         });
     }
-
     function showTab(id, btn) {
         document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -426,4 +334,3 @@
 </script>
 </body>
 </html>
-
