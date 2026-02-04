@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -18,18 +18,19 @@
     
     <style>
         :root {
-            --juan: #3b82f6;
+            --juan: #335eea;
+            --tania: #d63384;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --header-h: 85px;
+            --radius: 16px;
+            /* Agrego estas variables que usa el cuerpo del código para que no se rompa el diseño premium */
             --juan-light: #60a5fa;
             --juan-dark: #2563eb;
-            --tania: #ec4899;
             --tania-light: #f472b6;
             --tania-dark: #db2777;
-            --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --header-h: 75px;
-            --radius: 20px;
             --shadow-md: 0 4px 20px rgba(0,0,0,0.12);
             --shadow-lg: 0 8px 30px rgba(0,0,0,0.16);
         }
@@ -38,14 +39,20 @@
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: #f0f4f8; margin: 0; padding-top: calc(var(--header-h) + 20px); 
-            color: var(--text-main); min-height: 100vh;
+            background: #f0f4f8;
+            margin: 0; 
+            padding-top: calc(var(--header-h) + 20px); 
+            color: var(--text-main); 
+            min-height: 100vh;
         }
 
         .tabs { 
-            position: fixed; top: 0; width: 100%; background: var(--bg);
-            display: flex; height: var(--header-h); box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-            z-index: 1000; overflow-x: auto; scrollbar-width: none; backdrop-filter: blur(10px);
+            position: fixed; top: 0; width: 100%; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex; height: var(--header-h); 
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            z-index: 1000; overflow-x: auto; scrollbar-width: none;
+            backdrop-filter: blur(10px);
         }
         .tabs::-webkit-scrollbar { display: none; }
 
@@ -72,16 +79,17 @@
 
         .card { 
             background: var(--card-bg); padding: 24px; border-radius: var(--radius); 
-            margin-bottom: 16px; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 16px; box-shadow: var(--shadow-md);
+            border: 1px solid rgba(0,0,0,0.05); position: relative;
         }
 
         label { display: block; margin-bottom: 10px; font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; }
         select, input { 
             width: 100%; padding: 18px 16px; margin-bottom: 16px; border: 2px solid #e2e8f0; 
             border-radius: 14px; font-size: 16px; color: var(--text-main); background: #f8fafc;
-            font-weight: 500;
+            transition: all 0.3s ease; font-weight: 500;
         }
-        select:focus, input:focus { outline: none; border-color: var(--juan); background: #fff; transform: translateY(-2px); transition: 0.3s; }
+        select:focus, input:focus { outline: none; border-color: var(--juan); background: #fff; transform: translateY(-2px); }
 
         .row { display: flex; gap: 10px; }
         .row div { flex: 1; }
@@ -89,7 +97,6 @@
         button { 
             width: 100%; padding: 20px; margin-bottom: 14px; border: none; border-radius: 16px; 
             font-weight: 800; font-size: 16px; cursor: pointer; text-transform: uppercase;
-            transition: 0.3s;
         }
         .btn-juan { background: linear-gradient(135deg, var(--juan-light) 0%, var(--juan-dark) 100%); color: white; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
         .btn-tania { background: linear-gradient(135deg, var(--tania-light) 0%, var(--tania-dark) 100%); color: white; box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4); }
@@ -127,7 +134,10 @@
 <div id="DIARIOS" class="container active">
     <div class="card">
         <label>MES DE CARGA</label>
-        <div class="row"><div><select id="mes-diarios"></select></div><div><select id="anio-diarios"></select></div></div>
+        <div class="row">
+            <div><select id="mes-diarios"></select></div>
+            <div><select id="anio-diarios"></select></div>
+        </div>
         <label>RUBRO DIARIO (50/50)</label>
         <select id="select-diarios" onchange="toggleNota('diarios')"></select>
         <input type="text" id="nota-diarios" class="nota-input" placeholder="DETALLE / CONCEPTO" style="display:none">
@@ -140,7 +150,10 @@
 <div id="MENSUALES" class="container">
     <div class="card">
         <label>MES DE CARGA</label>
-        <div class="row"><div><select id="mes-mensuales"></select></div><div><select id="anio-mensuales"></select></div></div>
+        <div class="row">
+            <div><select id="mes-mensuales"></select></div>
+            <div><select id="anio-mensuales"></select></div>
+        </div>
         <label>RUBRO MENSUAL (50/50)</label>
         <select id="select-mensuales" onchange="toggleNota('mensuales')"></select>
         <input type="text" id="nota-mensuales" class="nota-input" placeholder="DETALLE / CONCEPTO" style="display:none">
@@ -155,7 +168,10 @@
 <div id="JC" class="container">
     <div class="card">
         <label>MES DE CARGA</label>
-        <div class="row"><div><select id="mes-jc"></select></div><div><select id="anio-jc"></select></div></div>
+        <div class="row">
+            <div><select id="mes-jc"></select></div>
+            <div><select id="anio-jc"></select></div>
+        </div>
         <label>RUBRO JC (DEUDA JUAN)</label>
         <select id="select-jc" onchange="toggleNota('jc')"></select>
         <input type="text" id="nota-jc" class="nota-input" placeholder="DETALLE TARJETA" style="display:none">
@@ -261,6 +277,7 @@
         let cuotas = (tipo === 'MENSUALES' || tipo === 'JC') ? (parseInt(document.getElementById(`cuotas-${tab}`).value) || 1) : 1;
         const mesElegido = parseInt(document.getElementById(`mes-${tab}`).value);
         const anioElegido = parseInt(document.getElementById(`anio-${tab}`).value);
+
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
 
         if (tipo === 'MENSUALES' && item !== "CASA VARIOS" && item !== "VARIOS") {
@@ -270,10 +287,11 @@
                 const g = child.val();
                 for (let i = 0; i < cuotas; i++) {
                     let fCheck = new Date(anioElegido, mesElegido - 1 + i, 15);
-                    if (g.tipo === 'MENSUALES' && g.item === item && g.mesAnio === `${fCheck.getMonth() + 1}-${fCheck.getFullYear()}`) yaExiste = true;
+                    const mesAnioCheck = `${fCheck.getMonth() + 1}-${fCheck.getFullYear()}`;
+                    if (g.tipo === 'MENSUALES' && g.item === item && g.mesAnio === mesAnioCheck) yaExiste = true;
                 }
             });
-            if (yaExiste) return alert(`⚠️ ERROR: El rubro "${item}" ya está cargado.`);
+            if (yaExiste) { alert(`⚠️ ERROR: El rubro "${item}" ya está cargado.`); return; }
         }
 
         const promesas = [];
@@ -290,15 +308,18 @@
         if(document.getElementById('HISTORIAL').classList.contains('active')) cargarHistorial();
         if(document.getElementById('BALANCE').classList.contains('active')) calcularBalance();
     }
+
     function cambiarMesHistorial(n) { fechaHistorialView.setMonth(fechaHistorialView.getMonth() + n); refrescarVistas(); }
 
     function cargarHistorial() {
         const filtro = document.getElementById('filtro-rubro').value;
         const mesAnio = `${fechaHistorialView.getMonth() + 1}-${fechaHistorialView.getFullYear()}`;
         document.getElementById('titulo-mes-historial').innerText = `${mesesNombres[fechaHistorialView.getMonth()]} ${fechaHistorialView.getFullYear()}`;
+        
         db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
             let gastos = []; s.forEach(c => { let g = c.val(); g.id = c.key; gastos.push(g); });
             let html = ""; let totalGeneral = 0;
+
             if (filtro === 'FILTRO_JUAN' || filtro === 'FILTRO_TANIA') {
                 const persona = filtro === 'FILTRO_JUAN' ? 'JUAN' : 'TANIA';
                 const d = gastos.filter(g => g.pagador === persona && g.tipo === 'DIARIOS');
@@ -323,7 +344,7 @@
                 html += pagados.map(g => itemHtml(g)).join('');
                 const faltantes = listas.mensuales.filter(r => !rPagados.includes(r)).sort();
                 if(faltantes.length > 0) {
-                    html += `<div class="subtotal-seccion" style="background:#f1f5f9; color:#64748b;"><span>PENDIENTES</span></div>`;
+                    html += `<div class="subtotal-seccion" style="background:#e2e8f0; color:#64748b;"><span>PENDIENTES DE CARGAR</span></div>`;
                     html += faltantes.map(r => `<div class="historial-item item-pendiente"><div><b>${r}</b></div><div style="text-align:right; color:#94a3b8"><b>$0,0</b></div></div>`).join('');
                 }
                 totalGeneral = pagados.reduce((acc, g) => acc + g.monto, 0);
@@ -334,12 +355,14 @@
             document.getElementById('total-acumulado').innerText = `$${totalGeneral.toFixed(0)}`;
         });
     }
+
     function itemHtml(g) {
         return `<div class="historial-item ${g.tipo === 'JC' ? 'item-jc' : ''}">
             <div><small>${g.fecha.split('-')[2]}/${g.fecha.split('-')[1]}</small><br><b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">${g.tipo === 'JC' ? 'JC' : 'PAGÓ: ' + g.pagador}</span></div>
             <div style="text-align:right"><b>$${g.monto.toFixed(0)}</b> <button style="width:auto;padding:5px 10px;background:#fee2e2;color:#ef4444;margin-left:10px" onclick="eliminarGasto('${g.id}')">X</button></div>
         </div>`;
     }
+
     function eliminarGasto(id) { if(confirm("¿Borrar?")) db.ref(`gastos_global/${id}`).remove().then(()=>refrescarVistas()); }
     function cambiarMesBalance(n) { fechaBalanceView.setMonth(fechaBalanceView.getMonth() + n); refrescarVistas(); }
     function calcularBalance() {
@@ -353,19 +376,38 @@
             document.getElementById('resumen-balance').innerHTML = `<div class="balance-item"><span class="label">Juan:</span> <span class="value">$${j50.toFixed(0)}</span></div><div class="balance-item"><span class="label">Tania:</span> <span class="value">$${t50.toFixed(0)}</span></div><div class="balance-item"><span class="label">JC:</span> <span class="value">$${totalJC.toFixed(0)}</span></div><div class="resultado ${debe > 0 ? 'debe-juan' : 'debe-tania'}">${debe > 0 ? `JUAN ADEUDA A TANIA: $${debe.toFixed(0)}` : `TANIA ADEUDA A JUAN: $${Math.abs(debe).toFixed(0)}`}</div>`;
         });
     }
+
     function cerrarMes() { if(confirm("¿Guardar cierre?")) db.ref(`cierres_mensuales/${balanceActual.mesAnio}`).set({ ...balanceActual, fechaCierre: new Date().toISOString() }).then(() => alert("🔒 Guardado")); }
+
     function cargarCierres() {
         db.ref(`cierres_mensuales`).once('value', (s) => {
-            let cierresArray = []; s.forEach(c => { const r = c.val(); const p = r.mesAnio.split('-'); cierresArray.push({ ...r, valorOrden: parseInt(p[1])*100 + parseInt(p[0]) }); });
+            let cierresArray = [];
+            s.forEach(c => {
+                const r = c.val();
+                const partes = r.mesAnio.split('-');
+                const valorOrden = parseInt(partes[1]) * 100 + parseInt(partes[0]);
+                cierresArray.push({ ...r, valorOrden });
+            });
             cierresArray.sort((a, b) => b.valorOrden - a.valorOrden);
             let html = "";
             cierresArray.forEach(r => {
-                const p = r.mesAnio.split('-'); const etiquetaMes = `${mesesNombres[parseInt(p[0])-1]} ${p[1]}`;
-                html += `<div class="card"><b style="color:var(--juan-dark)">${etiquetaMes}</b><br><small>Juan: $${r.j50.toFixed(0)} | Tania: $${r.t50.toFixed(0)} | JC: $${r.totalJC.toFixed(0)}</small><br><div class="resultado ${r.deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}" style="font-size:14px; padding:10px; margin-top:10px">${r.deudaJuan > 0 ? 'JUAN ADEUDA A TANIA' : 'TANIA ADEUDA A JUAN'}: $${Math.abs(r.deudaJuan).toFixed(0)}</div></div>`;
+                const partes = r.mesAnio.split('-');
+                const nombreMes = mesesNombres[parseInt(partes[0]) - 1];
+                const etiquetaMes = `${nombreMes} ${partes[1]}`;
+                const textoDeuda = r.deudaJuan > 0 ? `JUAN ADEUDA A TANIA` : `TANIA ADEUDA A JUAN`;
+                
+                html += `<div class="card">
+                    <b style="color:var(--juan-dark)">${etiquetaMes}</b><br>
+                    <small>Juan: $${r.j50.toFixed(0)} | Tania: $${r.t50.toFixed(0)} | JC: $${r.totalJC.toFixed(0)}</small><br>
+                    <div class="resultado ${r.deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}" style="font-size:14px; padding:10px; margin-top:10px">
+                        ${textoDeuda}: $${Math.abs(r.deudaJuan).toFixed(0)}
+                    </div>
+                </div>`;
             });
             document.getElementById('lista-cierres').innerHTML = html;
         });
     }
+
     function showTab(id, btn) {
         document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
