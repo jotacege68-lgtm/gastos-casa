@@ -4,11 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>App Gastos PRO 2026 - Premium Edition</title>
-    
-    <link rel="apple-touch-icon" href="https://i.ibb.co/C5f3W1N/logo-casa-tj-azul.png">
-    <link rel="icon" type="image/png" href="https://i.ibb.co/C5f3W1N/logo-casa-tj-azul.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
@@ -204,21 +199,6 @@
 <div id="RESUMENES" class="container"><div id="lista-cierres"></div></div>
 
 <script>
-    // Configuración del Manifesto Dinámico para el Logo Azul
-    const manifest = {
-      "name": "Gastos T+J",
-      "short_name": "T+J",
-      "display": "standalone",
-      "start_url": ".",
-      "icons": [
-        { "src": "https://i.ibb.co/C5f3W1N/logo-casa-tj-azul.png", "sizes": "192x192", "type": "image/png" },
-        { "src": "https://i.ibb.co/C5f3W1N/logo-casa-tj-azul.png", "sizes": "512x512", "type": "image/png" }
-      ]
-    };
-    const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-    const manifestURL = URL.createObjectURL(blob);
-    document.querySelector('head').innerHTML += `<link rel="manifest" href="${manifestURL}">`;
-
     const firebaseConfig = {
       apiKey: "AIzaSyBDlHjKXf33pCEznyLAmFrTDXVPevrHe9Q",
       authDomain: "gastoscasa-d8bc2.firebaseapp.com",
@@ -391,9 +371,21 @@
 
     function cargarCierres() {
         db.ref(`cierres_mensuales`).once('value', (s) => {
-            let html = "";
+            let cierresArray = [];
             s.forEach(c => {
                 const r = c.val();
+                const partes = r.mesAnio.split('-');
+                // Creamos un valor numérico para ordenar (Año * 100 + Mes)
+                // Ejemplo: 2026-02 -> 202602
+                const valorOrden = parseInt(partes[1]) * 100 + parseInt(partes[0]);
+                cierresArray.push({ ...r, valorOrden });
+            });
+
+            // Ordenamos DESCENDENTE (el valor más grande arriba)
+            cierresArray.sort((a, b) => b.valorOrden - a.valorOrden);
+
+            let html = "";
+            cierresArray.forEach(r => {
                 const partes = r.mesAnio.split('-');
                 const nombreMes = mesesNombres[parseInt(partes[0]) - 1];
                 const etiquetaMes = `${nombreMes} ${partes[1]}`;
@@ -421,4 +413,3 @@
 </script>
 </body>
 </html>
-
