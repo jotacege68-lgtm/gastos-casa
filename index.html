@@ -30,7 +30,9 @@
             --text-muted: #64748b;
             --header-h: 75px;
             --radius: 20px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
             --shadow-md: 0 4px 20px rgba(0,0,0,0.12);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.16);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -38,13 +40,14 @@
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
             background: #f0f4f8; margin: 0; padding-top: calc(var(--header-h) + 20px); 
-            color: var(--text-main); min-height: 100vh;
+            color: var(--text-main); -webkit-font-smoothing: antialiased; min-height: 100vh;
         }
 
+        /* Navegación Premium */
         .tabs { 
             position: fixed; top: 0; width: 100%; background: var(--bg);
-            display: flex; height: var(--header-h); z-index: 1000; overflow-x: auto; 
-            scrollbar-width: none; backdrop-filter: blur(10px);
+            display: flex; height: var(--header-h); box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            z-index: 1000; overflow-x: auto; scrollbar-width: none; backdrop-filter: blur(10px);
         }
         .tabs::-webkit-scrollbar { display: none; }
 
@@ -53,55 +56,73 @@
             font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, 0.7);
             text-transform: uppercase; cursor: pointer; padding: 10px 8px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: all 0.3s ease; position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); letter-spacing: 0.8px; position: relative;
+        }
+
+        .tab-btn::before {
+            content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%) scaleX(0);
+            width: 80%; height: 3px; background: white; border-radius: 3px 3px 0 0;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .tab-btn.active { color: #ffffff !important; background: rgba(255, 255, 255, 0.15); }
-        .tab-btn.active::after {
-            content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 80%; height: 3px; background: white; border-radius: 3px 3px 0 0;
-        }
+        .tab-btn.active::before { transform: translateX(-50%) scaleX(1); }
 
-        .container { padding: 16px; display: none; max-width: 500px; margin: auto; animation: slideUp 0.4s ease; }
+        /* Contenedores y Tarjetas */
+        .container { 
+            padding: 16px; display: none; max-width: 500px; margin: auto; 
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .container.active { display: block; }
 
         .card { 
             background: var(--card-bg); padding: 24px; border-radius: var(--radius); 
             margin-bottom: 16px; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
         }
 
-        label { display: block; margin-bottom: 10px; font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        /* Formularios */
+        label { display: block; margin-bottom: 10px; font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; }
         select, input { 
             width: 100%; padding: 18px 16px; margin-bottom: 16px; border: 2px solid #e2e8f0; 
             border-radius: 14px; font-size: 16px; color: var(--text-main); background: #f8fafc;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 500;
         }
+        select:focus, input:focus { outline: none; border-color: var(--juan); background: #fff; transform: translateY(-2px); }
 
         .row { display: flex; gap: 10px; }
         .row div { flex: 1; }
 
+        /* Botones Premium */
         button { 
             width: 100%; padding: 20px; margin-bottom: 14px; border: none; border-radius: 16px; 
             font-weight: 800; font-size: 16px; cursor: pointer; text-transform: uppercase;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
         }
-        .btn-juan { background: linear-gradient(135deg, var(--juan-light) 0%, var(--juan-dark) 100%); color: white; }
-        .btn-tania { background: linear-gradient(135deg, var(--tania-light) 0%, var(--tania-dark) 100%); color: white; }
-        .btn-cerrar { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .btn-juan { background: linear-gradient(135deg, var(--juan-light) 0%, var(--juan-dark) 100%); color: white; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
+        .btn-tania { background: linear-gradient(135deg, var(--tania-light) 0%, var(--tania-dark) 100%); color: white; box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4); }
+        .btn-cerrar { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
 
-        .historial-item { padding: 18px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        /* Historial y Totales */
+        .historial-item { padding: 18px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 8px; transition: all 0.2s ease; }
+        .historial-item:hover { background: #f8fafc; transform: translateX(4px); }
         .item-pendiente { border-left: 5px solid #cbd5e1 !important; background: #f8fafc !important; opacity: 0.6; }
-        .item-jc { border-left: 5px solid #8b5cf6 !important; background: #f5f3ff !important; }
-        .item-pagador { font-size: 10px; font-weight: 800; color: #475569; background: #e2e8f0; padding: 6px 12px; border-radius: 20px; }
-        .item-nota { font-size: 13px; color: #92400e; background: #fef3c7; padding: 6px 12px; border-radius: 8px; display: inline-block; margin-top: 6px; }
+        .item-jc { border-left: 5px solid #8b5cf6 !important; background: #f5f3ff !important; box-shadow: var(--shadow-sm); }
+        .item-pagador { font-size: 10px; font-weight: 800; color: #475569; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); padding: 6px 12px; border-radius: 20px; text-transform: uppercase; }
+        .item-nota { font-size: 13px; color: #92400e; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 6px 12px; border-radius: 8px; display: inline-block; margin-top: 6px; font-weight: 600; }
 
-        .total-filtro { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #fbbf24; padding: 28px; border-radius: var(--radius); font-weight: 900; font-size: 28px; text-align: center; margin-bottom: 24px; }
-        .subtotal-seccion { background: #f1f5f9; color: var(--text-main); padding: 14px 18px; font-weight: 800; font-size: 14px; border-radius: 12px; margin: 18px 0 10px 0; border-left: 5px solid #cbd5e1; }
+        .total-filtro { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #fbbf24; padding: 28px; border-radius: var(--radius); font-weight: 900; font-size: 28px; text-align: center; margin-bottom: 24px; box-shadow: var(--shadow-lg); }
+        .subtotal-seccion { background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); color: var(--text-main); padding: 14px 18px; font-weight: 800; font-size: 14px; border-radius: 12px; margin: 18px 0 10px 0; border-left: 5px solid #cbd5e1; text-transform: uppercase; }
         
-        .nav-historial, .nav-balance { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: white; padding: 14px; border-radius: 16px; }
-        .btn-nav { background: #f1f5f9; color: var(--text-main); padding: 14px 24px; border-radius: 12px; width: auto; font-weight: 700; }
+        .nav-historial, .nav-balance { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: white; padding: 14px; border-radius: 16px; box-shadow: var(--shadow-sm); gap: 12px; }
+        .btn-nav { background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); color: var(--text-main); padding: 14px 24px; border-radius: 12px; width: auto; font-weight: 700; }
 
-        .balance-item { display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px dashed #e2e8f0; }
-        .resultado { margin-top: 24px; padding: 24px; border-radius: 16px; text-align: center; font-weight: 900; font-size: 22px; }
+        .balance-item { display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px dashed #e2e8f0; align-items: center; }
+        .balance-item .label { font-weight: 700; color: var(--text-muted); }
+        .balance-item .value { font-weight: 800; font-size: 18px; }
+
+        .resultado { margin-top: 24px; padding: 24px; border-radius: 16px; text-align: center; font-weight: 900; font-size: 22px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
         .debe-juan { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #b91c1c; border: 2px solid #fca5a5; }
         .debe-tania { background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); color: #9d174d; border: 2px solid #f9a8d4; }
     </style>
@@ -186,7 +207,6 @@
 <div id="RESUMENES" class="container"><div id="lista-cierres"></div></div>
 
 <script>
-    // Configuración del Manifesto Dinámico para PWA (Con tu Logo)
     const manifest = {
       "name": "Gastos T+J", "short_name": "T+J", "start_url": ".", "display": "standalone", "background_color": "#ffffff", "theme_color": "#667eea",
       "icons": [
@@ -247,7 +267,6 @@
                 anioSel.appendChild(opt);
             }
         });
-
         const comboHistorial = document.getElementById('filtro-rubro');
         [...listas.diarios, ...listas.mensuales, ...listas.jc].sort().forEach(i => {
             const opt = document.createElement('option'); opt.value = i; opt.innerText = i; comboHistorial.appendChild(opt);
@@ -267,7 +286,6 @@
         const mesElegido = parseInt(document.getElementById(`mes-${tab}`).value);
         const anioElegido = parseInt(document.getElementById(`anio-${tab}`).value);
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
-
         if (tipo === 'MENSUALES' && item !== "CASA VARIOS" && item !== "VARIOS") {
             const snapshot = await db.ref(`gastos_global`).once('value');
             let yaExiste = false;
@@ -275,13 +293,11 @@
                 const g = child.val();
                 for (let i = 0; i < cuotas; i++) {
                     let fCheck = new Date(anioElegido, mesElegido - 1 + i, 15);
-                    const mesAnioCheck = `${fCheck.getMonth() + 1}-${fCheck.getFullYear()}`;
-                    if (g.tipo === 'MENSUALES' && g.item === item && g.mesAnio === mesAnioCheck) yaExiste = true;
+                    if (g.tipo === 'MENSUALES' && g.item === item && g.mesAnio === `${fCheck.getMonth() + 1}-${fCheck.getFullYear()}`) yaExiste = true;
                 }
             });
-            if (yaExiste) { alert(`⚠️ ERROR: El rubro "${item}" ya está cargado.`); return; }
+            if (yaExiste) return alert(`⚠️ ERROR: El rubro "${item}" ya está cargado.`);
         }
-
         const promesas = [];
         for(let i = 0; i < cuotas; i++) {
             let fF = new Date(anioElegido, mesElegido - 1 + i, 15);
@@ -297,16 +313,13 @@
         if(document.getElementById('BALANCE').classList.contains('active')) calcularBalance();
     }
     function cambiarMesHistorial(n) { fechaHistorialView.setMonth(fechaHistorialView.getMonth() + n); refrescarVistas(); }
-
     function cargarHistorial() {
         const filtro = document.getElementById('filtro-rubro').value;
         const mesAnio = `${fechaHistorialView.getMonth() + 1}-${fechaHistorialView.getFullYear()}`;
         document.getElementById('titulo-mes-historial').innerText = `${mesesNombres[fechaHistorialView.getMonth()]} ${fechaHistorialView.getFullYear()}`;
-        
         db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
             let gastos = []; s.forEach(c => { let g = c.val(); g.id = c.key; gastos.push(g); });
             let html = ""; let totalGeneral = 0;
-
             if (filtro === 'FILTRO_JUAN' || filtro === 'FILTRO_TANIA') {
                 const persona = filtro === 'FILTRO_JUAN' ? 'JUAN' : 'TANIA';
                 const d = gastos.filter(g => g.pagador === persona && g.tipo === 'DIARIOS');
@@ -331,7 +344,7 @@
                 html += pagados.map(g => itemHtml(g)).join('');
                 const faltantes = listas.mensuales.filter(r => !rPagados.includes(r)).sort();
                 if(faltantes.length > 0) {
-                    html += `<div class="subtotal-seccion" style="background:#e2e8f0; color:#64748b;"><span>PENDIENTES DE CARGAR</span></div>`;
+                    html += `<div class="subtotal-seccion" style="background:#f1f5f9; color:#64748b;"><span>PENDIENTES</span></div>`;
                     html += faltantes.map(r => `<div class="historial-item item-pendiente"><div><b>${r}</b></div><div style="text-align:right; color:#94a3b8"><b>$0,0</b></div></div>`).join('');
                 }
                 totalGeneral = pagados.reduce((acc, g) => acc + g.monto, 0);
@@ -342,14 +355,12 @@
             document.getElementById('total-acumulado').innerText = `$${totalGeneral.toFixed(0)}`;
         });
     }
-
     function itemHtml(g) {
         return `<div class="historial-item ${g.tipo === 'JC' ? 'item-jc' : ''}">
             <div><small>${g.fecha.split('-')[2]}/${g.fecha.split('-')[1]}</small><br><b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<span class="item-pagador">${g.tipo === 'JC' ? 'JC' : 'PAGÓ: ' + g.pagador}</span></div>
             <div style="text-align:right"><b>$${g.monto.toFixed(0)}</b> <button style="width:auto;padding:5px 10px;background:#fee2e2;color:#ef4444;margin-left:10px" onclick="eliminarGasto('${g.id}')">X</button></div>
         </div>`;
     }
-
     function eliminarGasto(id) { if(confirm("¿Borrar?")) db.ref(`gastos_global/${id}`).remove().then(()=>refrescarVistas()); }
     function cambiarMesBalance(n) { fechaBalanceView.setMonth(fechaBalanceView.getMonth() + n); refrescarVistas(); }
     function calcularBalance() {
@@ -363,37 +374,19 @@
             document.getElementById('resumen-balance').innerHTML = `<div class="balance-item"><span class="label">Juan:</span> <span class="value">$${j50.toFixed(0)}</span></div><div class="balance-item"><span class="label">Tania:</span> <span class="value">$${t50.toFixed(0)}</span></div><div class="balance-item"><span class="label">JC:</span> <span class="value">$${totalJC.toFixed(0)}</span></div><div class="resultado ${debe > 0 ? 'debe-juan' : 'debe-tania'}">${debe > 0 ? `JUAN ADEUDA A TANIA: $${debe.toFixed(0)}` : `TANIA ADEUDA A JUAN: $${Math.abs(debe).toFixed(0)}`}</div>`;
         });
     }
-
     function cerrarMes() { if(confirm("¿Guardar cierre?")) db.ref(`cierres_mensuales/${balanceActual.mesAnio}`).set({ ...balanceActual, fechaCierre: new Date().toISOString() }).then(() => alert("🔒 Guardado")); }
-
     function cargarCierres() {
         db.ref(`cierres_mensuales`).once('value', (s) => {
-            let cierresArray = [];
-            s.forEach(c => {
-                const r = c.val();
-                const partes = r.mesAnio.split('-');
-                const valorOrden = parseInt(partes[1]) * 100 + parseInt(partes[0]);
-                cierresArray.push({ ...r, valorOrden });
-            });
+            let cierresArray = []; s.forEach(c => { const r = c.val(); const p = r.mesAnio.split('-'); cierresArray.push({ ...r, valorOrden: parseInt(p[1])*100 + parseInt(p[0]) }); });
             cierresArray.sort((a, b) => b.valorOrden - a.valorOrden);
             let html = "";
             cierresArray.forEach(r => {
-                const partes = r.mesAnio.split('-');
-                const nombreMes = mesesNombres[parseInt(partes[0]) - 1];
-                const etiquetaMes = `${nombreMes} ${partes[1]}`;
-                const textoDeuda = r.deudaJuan > 0 ? `JUAN ADEUDA A TANIA` : `TANIA ADEUDA A JUAN`;
-                html += `<div class="card">
-                    <b style="color:var(--juan-dark)">${etiquetaMes}</b><br>
-                    <small>Juan: $${r.j50.toFixed(0)} | Tania: $${r.t50.toFixed(0)} | JC: $${r.totalJC.toFixed(0)}</small><br>
-                    <div class="resultado ${r.deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}" style="font-size:14px; padding:10px; margin-top:10px">
-                        ${textoDeuda}: $${Math.abs(r.deudaJuan).toFixed(0)}
-                    </div>
-                </div>`;
+                const p = r.mesAnio.split('-'); const etiquetaMes = `${mesesNombres[parseInt(p[0])-1]} ${p[1]}`;
+                html += `<div class="card"><b style="color:var(--juan-dark)">${etiquetaMes}</b><br><small>Juan: $${r.j50.toFixed(0)} | Tania: $${r.t50.toFixed(0)} | JC: $${r.totalJC.toFixed(0)}</small><br><div class="resultado ${r.deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}" style="font-size:14px; padding:10px; margin-top:10px">${r.deudaJuan > 0 ? 'JUAN ADEUDA A TANIA' : 'TANIA ADEUDA A JUAN'}: $${Math.abs(r.deudaJuan).toFixed(0)}</div></div>`;
             });
             document.getElementById('lista-cierres').innerHTML = html;
         });
     }
-
     function showTab(id, btn) {
         document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -404,3 +397,4 @@
 </script>
 </body>
 </html>
+
