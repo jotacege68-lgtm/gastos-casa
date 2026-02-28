@@ -2,16 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewe-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>App Gastos PRO 2026 - Premium Edition</title>
+    
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Gastos Casa">
     <link rel="icon" sizes="192x192" href="https://i.ibb.co/C5f3W1N/logo-casa-tj-azul.png">
     <link rel="apple-touch-icon" href="https://i.ibb.co/C5f3W1N/logo-casa-tj-azul.png">
     
-    <!-- Firebase SDK Compat --port" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>App Gastos PRO 2026 - Premium Edition</title>
-    
-    <meta name="theme-color" content="#667eea">
-    <meta name="mobil>
+    <!-- Firebase SDK Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     
@@ -248,4 +248,324 @@
       authDomain: "gastoscasa-d8bc2.firebaseapp.com",
       databaseURL: "https://gastoscasa-d8bc2-default-rtdb.firebaseio.com",
       projectId: "gastoscasa-d8bc2",
-      storageBucket
+      storageBucket: "gastoscasa-d8bc2.firebasestorage.app",
+      messagingSenderId: "749635992986",
+      appId: "1:749635992986:web:7916d888f54eb5c3ab0e23",
+      measurementId: "G-PHML1K224T"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const ServerValue = firebase.database.ServerValue;
+    
+    // --- 3. Variables Globales y Estado ---
+    let fechaBalanceView = new Date();
+    let fechaHistorialView = new Date();
+    let balanceActual = {};
+    const mesesNombres = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+
+    // Datos maestros
+    const listas = {
+        diarios: ["AGUA", "AUTO GASTOS", "AVICOLA", "BOLSAS", "CARNICERIA", "CASA VARIOS", "COMBUSTIBLE", "COMIDAS AFUERA", "DENTISTA", "EMPANADAS", "FARMACIA", "FCA. PASTAS", "FERIA PAPEL/CAFE", "FERIA VARIOS", "FERIA VERDURA", "FERRETERIA", "GASTOS ARTIGAS", "GATA COMIDA-PIEDRAS", "LA MOLIENDA", "LAVANDERIA", "PANADERIA", "PANADERIA S/G", "PEAJES", "PESCADERIA", "PIZZA", "PROPINAS", "REGALOS", "SUPERGAS", "SUPERMERCADO", "VARIOS", "VERDULERIA", "VETERINARIA EXTRAS"],
+        mensuales: ["A.N.V Juan", "A.N.V. Tania", "ABERTURAS", "CASA VARIOS", "ELECTRICIDAD", "ESPAÑOLA MOVIL", "GASTOS COMUNES DOLARES", "GASTOS COMUNES PESOS", "HBO", "INTERNET", "NETFLIX", "OLLA LEO FA", "SERVICIO FUNEBRE", "VARIOS", "VETERINARIA", "TARJETA BROU REC.", "TARJETA ITAU", "TARJETA OCA", "MANTENIMIENTO AUTO", "CONTRIBUCION INMOBILIARIA", "IMP. PRIMARIA", "IMP. PUERTA", "PATENTE RODADOS", "SEGURO CASA Y AUTO"],
+        jc: ["EL TUNEL", "LA MOLIENDA", "CLUB AEBU", "MOVILES", "MEDICAMENTOS ESP.", "GASTOS OCA", "GASTOS ITAU", "GASTOS SANTANDER"]
+    };
+
+    // --- 4. Funciones de UI ---
+    function toggleNota(tipo) {
+        const item = document.getElementById(`select-${tipo}`).value;
+        const rubrosConNota = ["CASA VARIOS", "REGALOS", "COMIDAS AFUERA", "VARIOS", "GASTOS OCA", "GASTOS ITAU", "GASTOS SANTANDER"];
+        const inputNota = document.getElementById(`nota-${tipo}`);
+        if(inputNota) inputNota.style.display = rubrosConNota.includes(item) ? "block" : "none";
+    }
+
+    function cargarListas() {
+        const hoy = new Date();
+        const anioActual = hoy.getFullYear();
+
+        // Configurar la fecha actual por defecto para los gastos diarios
+        const hoyStr = `${anioActual}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
+        document.getElementById('fecha-diarios').value = hoyStr;
+
+        ['mensuales','jc'].forEach(tab => {
+            const mesSel = document.getElementById(`mes-${tab}`);
+            const anioSel = document.getElementById(`anio-${tab}`);
+            
+            // Cargar meses
+            mesesNombres.forEach((m, idx) => {
+                const opt = document.createElement('option'); opt.value = idx + 1; opt.innerText = m;
+                if(idx === hoy.getMonth()) opt.selected = true;
+                mesSel.appendChild(opt);
+            });
+
+            // Cargar años dinámicamente
+            for(let a = anioActual - 1; a <= anioActual + 2; a++) {
+                const opt = document.createElement('option'); opt.value = a; opt.innerText = a;
+                if(a === anioActual) opt.selected = true;
+                anioSel.appendChild(opt);
+            }
+        });
+
+        // Llenar selects
+        const comboHistorial = document.getElementById('filtro-rubro');
+        [...listas.diarios, ...listas.mensuales, ...listas.jc].sort().forEach(i => {
+            const opt = document.createElement('option'); opt.value = i; opt.innerText = i; comboHistorial.appendChild(opt);
+        });
+        listas.diarios.sort().forEach(i => document.getElementById('select-diarios').innerHTML += `<option value="${i}">${i}</option>`);
+        listas.mensuales.sort().forEach(i => document.getElementById('select-mensuales').innerHTML += `<option value="${i}">${i}</option>`);
+        listas.jc.sort().forEach(i => document.getElementById('select-jc').innerHTML += `<option value="${i}">${i}</option>`);
+    }
+
+    function showTab(id, btn) {
+        document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active'); btn.classList.add('active'); refrescarVistas();
+        if(id === 'RESUMENES') cargarCierres();
+    }
+
+    // --- 5. Lógica de Negocio y Firebase ---
+    async function guardarGasto(tipo, pagador) {
+        const tab = tipo.toLowerCase();
+        const item = document.getElementById(`select-${tab}`).value;
+        const notaInput = document.getElementById(`nota-${tab}`);
+        const nota = (notaInput && notaInput.style.display !== 'none') ? notaInput.value : "";
+        const monto = parseFloat(document.getElementById(`monto-${tab}`).value);
+        let cuotas = (tipo === 'MENSUALES' || tipo === 'JC') ? (parseInt(document.getElementById(`cuotas-${tab}`).value) || 1) : 1;
+        
+        let mesElegido, anioElegido, fechaExactaStr;
+        const hoy = new Date();
+        const diaActual = hoy.getDate();
+
+        if (tipo === 'DIARIOS') {
+            fechaExactaStr = document.getElementById('fecha-diarios').value;
+            const partesFecha = fechaExactaStr.split('-'); 
+            anioElegido = parseInt(partesFecha[0]);
+            mesElegido = parseInt(partesFecha[1]);
+        } else {
+            mesElegido = parseInt(document.getElementById(`mes-${tab}`).value);
+            anioElegido = parseInt(document.getElementById(`anio-${tab}`).value);
+        }
+
+        if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
+
+        // Validación para no duplicar mensuales (salvo VARIOS)
+        if (tipo === 'MENSUALES' && item !== "CASA VARIOS" && item !== "VARIOS") {
+            const snapshot = await db.ref(`gastos_global`).once('value');
+            let yaExiste = false;
+            snapshot.forEach(child => {
+                const g = child.val();
+                for (let i = 0; i < cuotas; i++) {
+                    let fCheck = new Date(anioElegido, mesElegido - 1 + i, 1);
+                    const mesAnioCheck = `${fCheck.getMonth() + 1}-${fCheck.getFullYear()}`;
+                    if (g.tipo === 'MENSUALES' && g.item === item && g.mesAnio === mesAnioCheck) yaExiste = true;
+                }
+            });
+            if (yaExiste) { alert(`⚠️ ERROR: El rubro "${item}" ya está cargado para ese mes.`); return; }
+        }
+
+        const promesas = [];
+        for(let i = 0; i < cuotas; i++) {
+            let fechaGuardarStr, mesAnio;
+            
+            if (tipo === 'DIARIOS') {
+                fechaGuardarStr = fechaExactaStr;
+                mesAnio = `${mesElegido}-${anioElegido}`;
+            } else {
+                let anioCuota = anioElegido;
+                let mesCuota = mesElegido - 1 + i;
+                let ultimoDiaMes = new Date(anioCuota, mesCuota + 1, 0).getDate();
+                let diaGuardar = Math.min(diaActual, ultimoDiaMes);
+                
+                let fF = new Date(anioCuota, mesCuota, diaGuardar);
+                fechaGuardarStr = `${fF.getFullYear()}-${String(fF.getMonth() + 1).padStart(2, '0')}-${String(fF.getDate()).padStart(2, '0')}`;
+                mesAnio = `${fF.getMonth() + 1}-${fF.getFullYear()}`;
+            }
+
+            const nF = cuotas > 1 ? `${nota} (${i+1}/${cuotas})`.trim() : nota;
+            
+            promesas.push(db.ref(`gastos_global`).push({ 
+                tipo, 
+                item, 
+                nota: nF, 
+                monto, 
+                pagador, 
+                fecha: fechaGuardarStr, 
+                mesAnio, 
+                timestamp: ServerValue.TIMESTAMP 
+            }));
+        }
+        
+        Promise.all(promesas).then(() => { 
+            alert("✅ GUARDADO CORRECTAMENTE"); 
+            document.getElementById(`monto-${tab}`).value = ""; 
+            if(notaInput) { notaInput.style.display = "none"; notaInput.value = ""; }
+            refrescarVistas(); 
+        }).catch(err => alert("Error al guardar: " + err));
+    }
+
+    function refrescarVistas() {
+        if(document.getElementById('HISTORIAL').classList.contains('active')) cargarHistorial();
+        if(document.getElementById('BALANCE').classList.contains('active')) calcularBalance();
+    }
+
+    // Historial
+    function cambiarMesHistorial(n) { fechaHistorialView.setMonth(fechaHistorialView.getMonth() + n); refrescarVistas(); }
+
+    function cargarHistorial() {
+        const filtro = document.getElementById('filtro-rubro').value;
+        const mesAnio = `${fechaHistorialView.getMonth() + 1}-${fechaHistorialView.getFullYear()}`;
+        document.getElementById('titulo-mes-historial').innerText = `${mesesNombres[fechaHistorialView.getMonth()]} ${fechaHistorialView.getFullYear()}`;
+        
+        db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
+            let gastos = []; 
+            s.forEach(c => { let g = c.val(); g.id = c.key; gastos.push(g); });
+            let html = ""; let totalGeneral = 0;
+
+            if (filtro === 'FILTRO_JUAN' || filtro === 'FILTRO_TANIA') {
+                const persona = filtro === 'FILTRO_JUAN' ? 'JUAN' : 'TANIA';
+                const d = gastos.filter(g => g.pagador === persona && g.tipo === 'DIARIOS');
+                const m = gastos.filter(g => g.pagador === persona && g.tipo === 'MENSUALES');
+                const jc = persona === 'JUAN' ? gastos.filter(g => g.tipo === 'JC') : [];
+                
+                html += `<div class="subtotal-seccion"><span>DIARIOS</span><span>$${d.reduce((a,b)=>a+b.monto,0)}</span></div>` + d.map(g => itemHtml(g)).join('');
+                html += `<div class="subtotal-seccion"><span>MENSUALES</span><span>$${m.reduce((a,b)=>a+b.monto,0)}</span></div>` + m.map(g => itemHtml(g)).join('');
+                if(persona === 'JUAN' && jc.length > 0) html += `<div class="subtotal-seccion" style="background:#cbd5e1"><span>INFO JC</span><span>$${jc.reduce((a,b)=>a+b.monto,0)}</span></div>` + jc.map(g => itemHtml(g)).join('');
+                totalGeneral = d.reduce((a,b)=>a+b.monto,0) + m.reduce((a,b)=>a+b.monto,0);
+            
+            } else if (filtro === 'FILTRO_CASA') {
+                const casa = gastos.filter(g => g.tipo === 'DIARIOS' || g.tipo === 'MENSUALES');
+                html = casa.map(g => itemHtml(g)).join('');
+                totalGeneral = casa.reduce((acc, g) => acc + g.monto, 0);
+            
+            } else if (filtro === 'FILTRO_COMIDA') {
+                const rubrosComida = ["CARNICERIA", "SUPERMERCADO", "AVICOLA", "VERDULERIA", "FERIA VERDURA", "PIZZA", "EMPANADAS", "PESCADERIA", "FCA. PASTAS", "COMIDAS AFUERA", "PANADERIA", "PANADERIA S/G"];
+                const comida = gastos.filter(g => rubrosComida.includes(g.item));
+                html = comida.map(g => itemHtml(g)).join('');
+                totalGeneral = comida.reduce((acc, g) => acc + g.monto, 0);
+            
+            } else if (filtro === 'FILTRO_MENSUALES') {
+                const pagados = gastos.filter(g => g.tipo === 'MENSUALES');
+                const rPagados = pagados.map(g => g.item);
+                html += pagados.map(g => itemHtml(g)).join('');
+                
+                const faltantes = listas.mensuales.filter(r => !rPagados.includes(r)).sort();
+                if(faltantes.length > 0) {
+                    html += `<div class="subtotal-seccion" style="background:#e2e8f0; color:#64748b;"><span>PENDIENTES DE CARGAR</span></div>`;
+                    html += faltantes.map(r => `<div class="historial-item item-pendiente"><div><b>${r}</b></div><div style="text-align:right; color:#94a3b8"><b>$0</b></div></div>`).join('');
+                }
+                totalGeneral = pagados.reduce((acc, g) => acc + g.monto, 0);
+            
+            } else {
+                gastos.forEach(g => { 
+                    if ((filtro === 'FILTRO_JC' && g.tipo === 'JC') || (g.item === filtro)) { 
+                        html += itemHtml(g); 
+                        totalGeneral += g.monto; 
+                    } 
+                });
+            }
+            document.getElementById('lista-historial').innerHTML = html;
+            document.getElementById('total-acumulado').innerText = `$${totalGeneral.toFixed(0)}`;
+        });
+    }
+
+    function itemHtml(g) {
+        return `
+        <div class="historial-item ${g.tipo === 'JC' ? 'item-jc' : ''}">
+            <div>
+                <small>${g.fecha.split('-')[2]}/${g.fecha.split('-')[1]}</small><br>
+                <b>${g.item}</b><br>
+                ${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}
+                <span class="item-pagador">${g.tipo === 'JC' ? 'JC' : 'PAGÓ: ' + g.pagador}</span>
+            </div>
+            <div style="text-align:right; display:flex; align-items:center; gap:10px;">
+                <b>$${g.monto}</b> 
+                <button style="width:auto; padding:8px 12px; background:#fee2e2; color:#ef4444; margin:0; border-radius:8px;" onclick="eliminarGasto('${g.id}')">X</button>
+            </div>
+        </div>`;
+    }
+
+    function eliminarGasto(id) { 
+        if(confirm("¿Estás seguro de borrar este gasto?")) {
+            db.ref(`gastos_global/${id}`).remove().then(() => refrescarVistas()); 
+        }
+    }
+
+    // Balance
+    function cambiarMesBalance(n) { fechaBalanceView.setMonth(fechaBalanceView.getMonth() + n); refrescarVistas(); }
+    
+    function calcularBalance() {
+        const mesAnio = `${fechaBalanceView.getMonth() + 1}-${fechaBalanceView.getFullYear()}`;
+        document.getElementById('titulo-mes-balance').innerText = `${mesesNombres[fechaBalanceView.getMonth()]} ${fechaBalanceView.getFullYear()}`;
+        
+        db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
+            let j50 = 0, t50 = 0, totalJC = 0;
+            s.forEach(c => { 
+                const g = c.val(); 
+                if (g.tipo === 'JC') totalJC += g.monto; 
+                else if (g.pagador === 'JUAN') j50 += g.monto; 
+                else if (g.pagador === 'TANIA') t50 += g.monto; 
+            });
+            
+            const debe = ((j50 + t50) / 2 - j50) + totalJC;
+            balanceActual = { j50, t50, totalJC, deudaJuan: debe, mesAnio };
+            
+            document.getElementById('resumen-balance').innerHTML = `
+                <div class="balance-item"><span class="label">Total pagado por Juan:</span> <span class="value">$${j50}</span></div>
+                <div class="balance-item"><span class="label">Total pagado por Tania:</span> <span class="value">$${t50}</span></div>
+                <div class="balance-item" style="border-bottom:none"><span class="label">Deuda JC (suma a Juan):</span> <span class="value">$${totalJC}</span></div>
+                <div class="resultado ${debe > 0 ? 'debe-juan' : 'debe-tania'}">
+                    ${debe > 0 ? `JUAN ADEUDA A TANIA:<br>$${debe.toFixed(0)}` : `TANIA ADEUDA A JUAN:<br>$${Math.abs(debe).toFixed(0)}`}
+                </div>`;
+        });
+    }
+
+    // Cierres de Mes
+    function cerrarMes() { 
+        if(confirm(`¿Guardar el cierre definitivo de ${balanceActual.mesAnio}?`)) {
+            db.ref(`cierres_mensuales/${balanceActual.mesAnio}`).set({ 
+                ...balanceActual, 
+                fechaCierre: new Date().toISOString() 
+            }).then(() => alert("✅ Mes cerrado y guardado correctamente.")); 
+        }
+    }
+
+    function cargarCierres() {
+        db.ref(`cierres_mensuales`).once('value', (s) => {
+            let cierresArray = [];
+            s.forEach(c => {
+                const r = c.val();
+                const partes = r.mesAnio.split('-');
+                const valorOrden = parseInt(partes[1]) * 100 + parseInt(partes[0]);
+                cierresArray.push({ ...r, valorOrden });
+            });
+            
+            cierresArray.sort((a, b) => b.valorOrden - a.valorOrden);
+            
+            let html = "";
+            cierresArray.forEach(r => {
+                const partes = r.mesAnio.split('-');
+                const nombreMes = mesesNombres[parseInt(partes[0]) - 1];
+                const etiquetaMes = `${nombreMes} ${partes[1]}`;
+                const textoDeuda = r.deudaJuan > 0 ? `JUAN ADEUDA A TANIA` : `TANIA ADEUDA A JUAN`;
+                
+                html += `
+                <div class="card">
+                    <b style="color:var(--juan-dark); font-size:18px;">${etiquetaMes}</b><br>
+                    <small style="color:#64748b">J: $${r.j50} | T: $${r.t50} | JC: $${r.totalJC}</small><br>
+                    <div class="resultado ${r.deudaJuan > 0 ? 'debe-juan' : 'debe-tania'}" style="font-size:14px; padding:12px; margin-top:10px">
+                        <b>${textoDeuda}: $${Math.abs(r.deudaJuan).toFixed(0)}</b>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('lista-cierres').innerHTML = html || "<p style='text-align:center; color:#64748b'>No hay cierres guardados aún.</p>";
+        });
+    }
+
+    // --- Arranque inicial ---
+    window.onload = () => { 
+        cargarListas(); 
+        refrescarVistas(); 
+    };
+</script>
+</body>
+</html>
