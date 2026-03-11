@@ -14,7 +14,6 @@
     <!-- Firebase SDK Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     
     <style>
         :root {
@@ -43,15 +42,6 @@
             color: var(--text-main);
             min-height: 100vh;
         }
-
-        /* Login Overlay */
-        #login-screen {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: var(--bg); z-index: 2000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; text-align: center; color: white;
-        }
-        .login-card { background: white; padding: 30px; border-radius: 24px; width: 100%; max-width: 350px; color: var(--text-main); box-shadow: var(--shadow-md); }
 
         .tabs {
             position: fixed; top: 0; width: 100%;
@@ -112,138 +102,126 @@
 </head>
 <body>
 
-<!-- Pantalla de Login -->
-<div id="login-screen">
-    <img src="https://i.ibb.co/C5f3W1N/logo-casa-tj-azul.png" width="80" style="margin-bottom: 20px; filter: brightness(0) invert(1);">
-    <div class="login-card">
-        <h3>ACCESO PRIVADO</h3>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Ingresa la contraseña familiar</p>
-        <input type="password" id="pass-field" placeholder="CONTRASEÑA">
-        <button class="btn-juan" onclick="intentarLogin()">ENTRAR</button>
+<nav class="tabs">
+    <button class="tab-btn active" onclick="showTab('DIARIOS', this)">DIARIO</button>
+    <button class="tab-btn" onclick="showTab('MENSUALES', this)">MENSUAL</button>
+    <button class="tab-btn" onclick="showTab('JC', this)">SOLO JC</button>
+    <button class="tab-btn" onclick="showTab('HISTORIAL', this)">HISTORIAL</button>
+    <button class="tab-btn" onclick="showTab('BALANCE', this)">BALANCE</button>
+    <button class="tab-btn" onclick="showTab('CONFIG', this)">AJUSTES</button>
+</nav>
+
+<!-- Diarios -->
+<div id="DIARIOS" class="container active">
+    <div class="card">
+        <label>FECHA DEL GASTO</label>
+        <input type="date" id="fecha-diarios">
+        <label>RUBRO DIARIO</label>
+        <select id="select-diarios" onchange="toggleNota('diarios')"></select>
+        <input type="text" id="nota-diarios" style="display:none" placeholder="¿QUÉ SE COMPRÓ?">
+        <input type="number" id="monto-diarios" inputmode="decimal" placeholder="MONTO $">
+        <button class="btn-juan" onclick="guardarGasto('DIARIOS', 'JUAN')">PAGÓ JUAN</button>
+        <button class="btn-tania" onclick="guardarGasto('DIARIOS', 'TANIA')">PAGÓ TANIA</button>
     </div>
 </div>
 
-<!-- App Content -->
-<div id="app-content" style="display:none">
-    <nav class="tabs">
-        <button class="tab-btn active" onclick="showTab('DIARIOS', this)">DIARIO</button>
-        <button class="tab-btn" onclick="showTab('MENSUALES', this)">MENSUAL</button>
-        <button class="tab-btn" onclick="showTab('JC', this)">SOLO JC</button>
-        <button class="tab-btn" onclick="showTab('HISTORIAL', this)">HISTORIAL</button>
-        <button class="tab-btn" onclick="showTab('BALANCE', this)">BALANCE</button>
-        <button class="tab-btn" onclick="showTab('CONFIG', this)">AJUSTES</button>
-    </nav>
-
-    <!-- Diarios -->
-    <div id="DIARIOS" class="container active">
-        <div class="card">
-            <label>FECHA DEL GASTO</label>
-            <input type="date" id="fecha-diarios">
-            <label>RUBRO DIARIO</label>
-            <select id="select-diarios" onchange="toggleNota('diarios')"></select>
-            <input type="text" id="nota-diarios" style="display:none" placeholder="¿QUÉ SE COMPRÓ?">
-            <input type="number" id="monto-diarios" inputmode="decimal" placeholder="MONTO $">
-            <button class="btn-juan" onclick="guardarGasto('DIARIOS', 'JUAN')">PAGÓ JUAN</button>
-            <button class="btn-tania" onclick="guardarGasto('DIARIOS', 'TANIA')">PAGÓ TANIA</button>
+<!-- Mensuales -->
+<div id="MENSUALES" class="container">
+    <div class="card">
+        <label>MES DE CARGA</label>
+        <div class="row">
+            <div><select id="mes-mensuales"></select></div>
+            <div><select id="anio-mensuales"></select></div>
         </div>
+        <label>RUBRO MENSUAL</label>
+        <select id="select-mensuales" onchange="toggleNota('mensuales')"></select>
+        <input type="text" id="nota-mensuales" style="display:none" placeholder="DETALLE EXTRA">
+        <label>CUOTAS</label>
+        <input type="number" id="cuotas-mensuales" value="1" min="1" max="24">
+        <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="MONTO $">
+        <button class="btn-juan" onclick="guardarGasto('MENSUALES', 'JUAN')">PAGÓ JUAN</button>
+        <button class="btn-tania" onclick="guardarGasto('MENSUALES', 'TANIA')">PAGÓ TANIA</button>
     </div>
+</div>
 
-    <!-- Mensuales -->
-    <div id="MENSUALES" class="container">
-        <div class="card">
-            <label>MES DE CARGA</label>
-            <div class="row">
-                <div><select id="mes-mensuales"></select></div>
-                <div><select id="anio-mensuales"></select></div>
-            </div>
-            <label>RUBRO MENSUAL</label>
-            <select id="select-mensuales" onchange="toggleNota('mensuales')"></select>
-            <input type="text" id="nota-mensuales" style="display:none" placeholder="DETALLE EXTRA">
-            <label>CUOTAS</label>
-            <input type="number" id="cuotas-mensuales" value="1" min="1" max="24">
-            <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="MONTO $">
-            <button class="btn-juan" onclick="guardarGasto('MENSUALES', 'JUAN')">PAGÓ JUAN</button>
-            <button class="btn-tania" onclick="guardarGasto('MENSUALES', 'TANIA')">PAGÓ TANIA</button>
+<!-- JC -->
+<div id="JC" class="container">
+    <div class="card">
+        <label>MES DE CARGA</label>
+        <div class="row">
+            <div><select id="mes-jc"></select></div>
+            <div><select id="anio-jc"></select></div>
         </div>
+        <label>RUBRO SOLO JC (DEUDA JUAN)</label>
+        <select id="select-jc" onchange="toggleNota('jc')"></select>
+        <input type="text" id="nota-jc" style="display:none" placeholder="DETALLE JC">
+        <label>CUOTAS</label>
+        <input type="number" id="cuotas-jc" value="1" min="1" max="24">
+        <input type="number" id="monto-jc" inputmode="decimal" placeholder="MONTO $">
+        <button class="btn-tania" onclick="guardarGasto('JC', 'TANIA')">PAGÓ TANIA</button>
     </div>
+</div>
 
-    <!-- JC -->
-    <div id="JC" class="container">
-        <div class="card">
-            <label>MES DE CARGA</label>
-            <div class="row">
-                <div><select id="mes-jc"></select></div>
-                <div><select id="anio-jc"></select></div>
-            </div>
-            <label>RUBRO SOLO JC (DEUDA JUAN)</label>
-            <select id="select-jc" onchange="toggleNota('jc')"></select>
-            <input type="text" id="nota-jc" style="display:none" placeholder="DETALLE JC">
-            <label>CUOTAS</label>
-            <input type="number" id="cuotas-jc" value="1" min="1" max="24">
-            <input type="number" id="monto-jc" inputmode="decimal" placeholder="MONTO $">
-            <button class="btn-tania" onclick="guardarGasto('JC', 'TANIA')">PAGÓ TANIA</button>
-        </div>
+<!-- Historial -->
+<div id="HISTORIAL" class="container">
+    <div class="card">
+        <label>FILTRAR VISTA</label>
+        <select id="filtro-rubro" onchange="cargarHistorial()">
+            <option value="FILTRO_CASA">GASTOS CASA (TODO)</option>
+            <option value="FILTRO_JUAN">LO QUE PAGÓ JUAN</option>
+            <option value="FILTRO_TANIA">LO QUE PAGÓ TANIA</option>
+            <option value="FILTRO_JC">LISTA SOLO JC</option>
+        </select>
     </div>
+    <div class="nav-mes">
+        <button class="btn-nav" onclick="cambiarMesHistorial(-1)">◀</button>
+        <h4 id="titulo-mes-historial">MES</h4>
+        <button class="btn-nav" onclick="cambiarMesHistorial(1)">▶</button>
+    </div>
+    <div id="total-acumulado" class="total-filtro">$0</div>
+    <div id="lista-historial"></div>
+</div>
 
-    <!-- Historial -->
-    <div id="HISTORIAL" class="container">
-        <div class="card">
-            <label>FILTRAR VISTA</label>
-            <select id="filtro-rubro" onchange="cargarHistorial()">
-                <option value="FILTRO_CASA">GASTOS CASA (TODO)</option>
-                <option value="FILTRO_JUAN">LO QUE PAGÓ JUAN</option>
-                <option value="FILTRO_TANIA">LO QUE PAGÓ TANIA</option>
-                <option value="FILTRO_JC">LISTA SOLO JC</option>
+<!-- Balance -->
+<div id="BALANCE" class="container">
+    <div class="nav-mes">
+        <button class="btn-nav" onclick="cambiarMesBalance(-1)">◀</button>
+        <h4 id="titulo-mes-balance">MES</h4>
+        <button class="btn-nav" onclick="cambiarMesBalance(1)">▶</button>
+    </div>
+    <div class="card" id="resumen-balance"></div>
+    <button class="btn-grey" onclick="calcularBalance()">🔄 RECALCULAR</button>
+    <button class="btn-juan" style="background:#10b981" onclick="cerrarMes()">🔒 GUARDAR CIERRE MES</button>
+    
+    <hr style="border:none; border-top: 1px solid #cbd5e1; margin: 30px 0;">
+    <div id="lista-cierres"></div>
+</div>
+
+<!-- Ajustes -->
+<div id="CONFIG" class="container">
+    <div class="card">
+        <h3>PANEL DE RUBROS</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Personaliza las listas que aparecen en los selectores.</p>
+        
+        <label>NUEVO RUBRO</label>
+        <div class="row">
+            <input type="text" id="nuevo-item-nombre" placeholder="Ej: GIMNASIO">
+            <select id="nuevo-item-tipo" style="width:120px">
+                <option value="diarios">DIARIO</option>
+                <option value="mensuales">MENSUAL</option>
+                <option value="jc">SOLO JC</option>
             </select>
         </div>
-        <div class="nav-mes">
-            <button class="btn-nav" onclick="cambiarMesHistorial(-1)">◀</button>
-            <h4 id="titulo-mes-historial">MES</h4>
-            <button class="btn-nav" onclick="cambiarMesHistorial(1)">▶</button>
-        </div>
-        <div id="total-acumulado" class="total-filtro">$0</div>
-        <div id="lista-historial"></div>
-    </div>
-
-    <!-- Balance -->
-    <div id="BALANCE" class="container">
-        <div class="nav-mes">
-            <button class="btn-nav" onclick="cambiarMesBalance(-1)">◀</button>
-            <h4 id="titulo-mes-balance">MES</h4>
-            <button class="btn-nav" onclick="cambiarMesBalance(1)">▶</button>
-        </div>
-        <div class="card" id="resumen-balance"></div>
-        <button class="btn-grey" onclick="calcularBalance()">🔄 RECALCULAR</button>
-        <button class="btn-juan" style="background:#10b981" onclick="cerrarMes()">🔒 GUARDAR CIERRE MES</button>
+        <button class="btn-juan" onclick="agregarNuevoRubro()">+ AGREGAR RUBRO</button>
         
-        <hr style="border:none; border-top: 1px solid #cbd5e1; margin: 30px 0;">
-        <div id="lista-cierres"></div>
-    </div>
-
-    <!-- Ajustes -->
-    <div id="CONFIG" class="container">
-        <div class="card">
-            <h3>PANEL DE RUBROS</h3>
-            <label>NUEVO RUBRO</label>
-            <div class="row">
-                <input type="text" id="nuevo-item-nombre" placeholder="Ej: GIMNASIO">
-                <select id="nuevo-item-tipo" style="width:120px">
-                    <option value="diarios">DIARIO</option>
-                    <option value="mensuales">MENSUAL</option>
-                    <option value="jc">SOLO JC</option>
-                </select>
-            </div>
-            <button class="btn-juan" onclick="agregarNuevoRubro()">+ AGREGAR RUBRO</button>
-            
-            <hr style="border:none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-            <label>CATEGORÍAS ACTUALES</label>
-            <div id="lista-gestion-rubros"></div>
-            <button class="btn-danger" style="margin-top:20px" onclick="logout()">CERRAR SESIÓN</button>
-        </div>
+        <hr style="border:none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+        <label>CATEGORÍAS ACTUALES</label>
+        <div id="lista-gestion-rubros"></div>
     </div>
 </div>
 
 <script>
+    // Configuración Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBDlHjKXf33pCEznyLAmFrTDXVPevrHe9Q",
       authDomain: "gastoscasa-d8bc2.firebaseapp.com",
@@ -261,17 +239,13 @@
     let fechaBalanceView = new Date();
     let balanceActual = {};
 
-    function intentarLogin() {
-        const pass = document.getElementById('pass-field').value;
-        if(pass === "CASA2026") {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
-            inicializarApp();
-        } else { alert("Contraseña incorrecta"); }
-    }
-    function logout() { location.reload(); }
+    // --- Inicio automático ---
+    window.onload = () => {
+        inicializarApp();
+    };
 
     async function inicializarApp() {
+        // Carga de categorías dinámicas
         const snap = await db.ref('config/categorias').once('value');
         if(snap.exists()) { listas = snap.val(); } 
         else {
@@ -292,8 +266,10 @@
 
         ['diarios','mensuales','jc'].forEach(t => {
             const sel = document.getElementById(`select-${t}`);
+            if(!sel) return;
             sel.innerHTML = "";
             listas[t].sort().forEach(item => { sel.innerHTML += `<option value="${item}">${item}</option>`; });
+            
             if(t !== 'diarios') {
                 const mesSel = document.getElementById(`mes-${t}`);
                 const anioSel = document.getElementById(`anio-${t}`);
@@ -354,7 +330,9 @@
         }
 
         const promesas = [];
-        const diaActual = new Date().getDate();
+        const hoy = new Date();
+        const diaActual = hoy.getDate();
+
         for(let i = 0; i < cuotas; i++) {
             let fFinal, mesAnio;
             if(tipo === 'DIARIOS') { fFinal = fechaStr; mesAnio = `${mesElegido}-${anioElegido}`; }
@@ -370,7 +348,8 @@
         }
         await Promise.all(promesas);
         alert("✅ GUARDADO");
-        document.getElementById(`monto-${tab}`).value = ""; document.getElementById(`nota-${tab}`).value = "";
+        document.getElementById(`monto-${tab}`).value = ""; 
+        document.getElementById(`nota-${tab}`).value = "";
         refrescarVistas();
     }
 
@@ -398,16 +377,16 @@
                 const g = c.val(); g.id = c.key;
                 let mostrar = (filtro === 'FILTRO_CASA' && g.tipo !== 'JC') || (filtro === 'FILTRO_JUAN' && g.pagador === 'JUAN' && g.tipo !== 'JC') || (filtro === 'FILTRO_TANIA' && g.pagador === 'TANIA' && g.tipo !== 'JC') || (filtro === 'FILTRO_JC' && g.tipo === 'JC') || (g.item === filtro);
                 if(mostrar) {
-                    html += `<div class="historial-item"><div><small>${g.fecha.split('-')[2]}/${g.fecha.split('-')[1]}</small> <b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<small>${g.pagador}</small></div><div style="text-align:right"><b>$${g.monto}</b> <button style="width:auto; padding:5px; background:none; color:red" onclick="eliminarGasto('${g.id}')">✕</button></div></div>`;
+                    html += `<div class="historial-item"><div><small>${g.fecha.split('-')[2]}/${g.fecha.split('-')[1]}</small> <b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<small>${g.pagador}</small></div><div style="text-align:right"><b>$${g.monto}</b> <button style="width:auto; padding:5px; background:none; color:red; border:none; cursor:pointer" onclick="eliminarGasto('${g.id}')">✕</button></div></div>`;
                     total += g.monto;
                 }
             });
-            document.getElementById('lista-historial').innerHTML = html || "<p style='text-align:center'>Sin gastos.</p>";
+            document.getElementById('lista-historial').innerHTML = html || "<p style='text-align:center; color:#64748b'>Sin gastos registrados.</p>";
             document.getElementById('total-acumulado').innerText = `$${total.toFixed(0)}`;
         });
     }
 
-    function eliminarGasto(id) { if(confirm("¿Borrar?")) db.ref(`gastos_global/${id}`).remove().then(refrescarVistas); }
+    function eliminarGasto(id) { if(confirm("¿Borrar gasto permanentemente?")) db.ref(`gastos_global/${id}`).remove().then(refrescarVistas); }
 
     function calcularBalance() {
         const mesAnio = `${fechaBalanceView.getMonth() + 1}-${fechaBalanceView.getFullYear()}`;
@@ -425,7 +404,7 @@
             document.getElementById('resumen-balance').innerHTML = `
                 <div class="subtotal-seccion"><span>Juan pagó casa:</span><span>$${j}</span></div>
                 <div class="subtotal-seccion"><span>Tania pagó casa:</span><span>$${t}</span></div>
-                <div class="subtotal-seccion"><span>Info Deuda JC:</span><span>$${jc}</span></div>
+                <div class="subtotal-seccion" style="background:#e2e8f0"><span>Deuda JC (aplica a Juan):</span><span>$${jc}</span></div>
                 <div class="resultado ${debe > 0 ? 'debe-juan' : 'debe-tania'}">
                     ${debe > 0 ? `JUAN DEBE A TANIA $${debe.toFixed(0)}` : `TANIA DEBE A JUAN $${Math.abs(debe).toFixed(0)}`}
                 </div>
@@ -435,8 +414,8 @@
     }
 
     function cerrarMes() {
-        if(confirm(`¿Guardar el cierre de ${balanceActual.mesAnio}?`)) {
-            db.ref(`cierres/${balanceActual.mesAnio}`).set({ ...balanceActual, fechaCierre: new Date().toISOString() }).then(() => alert("Cierre guardado."));
+        if(confirm(`¿Guardar cierre definitivo de ${balanceActual.mesAnio}?`)) {
+            db.ref(`cierres/${balanceActual.mesAnio}`).set({ ...balanceActual, fechaCierre: new Date().toISOString() }).then(() => alert("Cierre guardado correctamente."));
         }
     }
 
@@ -449,7 +428,7 @@
                 h += `<div class="card" style="font-size:12px; padding:12px; margin-bottom:8px;">
                     <b>${r.mesAnio}</b> | J: $${r.j} - T: $${r.t}<br>
                     <div style="margin-top:5px; font-weight:bold; color:${r.deudaJuan > 0 ? '#b91c1c' : '#9d174d'}">
-                        ${r.deudaJuan > 0 ? 'Juan adeudó' : 'Tania adeudó'}: $${Math.abs(r.deudaJuan).toFixed(0)}
+                        ${r.deudaJuan > 0 ? 'Juan debió' : 'Tania debió'}: $${Math.abs(r.deudaJuan).toFixed(0)}
                     </div>
                 </div>`;
             });
@@ -460,11 +439,10 @@
     function showTab(id, btn) {
         document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active'); btn.classList.add('active');
+        document.getElementById(id).classList.add('active'); 
+        btn.classList.add('active');
         refrescarVistas();
     }
 </script>
 </body>
 </html>
-
-
