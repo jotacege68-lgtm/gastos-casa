@@ -70,7 +70,9 @@
         .card { background: var(--card-bg); padding: 24px; border-radius: var(--radius); margin-bottom: 16px; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.05); }
 
         label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-        select, input { width: 100%; padding: 16px; margin-bottom: 16px; border: 2px solid #e2e8f0; border-radius: 14px; font-size: 16px; color: var(--text-main); background: #f8fafc; transition: 0.3s; }
+        select, input[type="text"], input[type="number"], input[type="date"] { 
+            width: 100%; padding: 16px; margin-bottom: 16px; border: 2px solid #e2e8f0; border-radius: 14px; font-size: 16px; color: var(--text-main); background: #f8fafc; transition: 0.3s; 
+        }
         select:focus, input:focus { outline: none; border-color: var(--juan); background: #fff; }
 
         .row { display: flex; gap: 10px; }
@@ -82,6 +84,7 @@
         .btn-tania { background: linear-gradient(135deg, var(--tania-light) 0%, var(--tania-dark) 100%); color: white; }
         .btn-grey { background: #64748b; color: white; }
         .btn-danger { background: #ef4444; color: white; }
+        .btn-outline { background: white; color: var(--juan-dark); border: 2px solid var(--juan-dark); }
 
         .nav-mes { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .nav-mes h4 { margin: 0; font-weight: 800; color: var(--text-main); }
@@ -98,6 +101,15 @@
         .resultado { padding: 20px; border-radius: 15px; margin-top: 15px; text-align: center; font-weight: bold; font-size: 18px; }
         .debe-juan { background: #fee2e2; color: #b91c1c; border: 2px solid #fca5a5; }
         .debe-tania { background: #fce7f3; color: #9d174d; border: 2px solid #f9a8d4; }
+
+        /* Estilos del Modal de Filtro Múltiple */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-content { background: white; border-radius: 20px; width: 100%; max-width: 400px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
+        .modal-header { padding: 20px; border-bottom: 1px solid #e2e8f0; text-align: center; font-weight: 800; }
+        .modal-body { padding: 10px 20px; overflow-y: auto; flex: 1; }
+        .modal-footer { padding: 20px; border-top: 1px solid #e2e8f0; }
+        .checkbox-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px dashed #f1f5f9; font-size: 15px; font-weight: 500; }
+        .checkbox-item input { width: 24px; height: 24px; margin-right: 15px; accent-color: var(--juan-dark); }
     </style>
 </head>
 <body>
@@ -165,14 +177,18 @@
 <!-- Historial -->
 <div id="HISTORIAL" class="container">
     <div class="card">
-        <label>FILTRAR VISTA</label>
-        <select id="filtro-rubro" onchange="cargarHistorial()">
-            <option value="FILTRO_CASA">GASTOS CASA (TODO)</option>
-            <option value="FILTRO_JUAN">LO QUE PAGÓ JUAN</option>
-            <option value="FILTRO_TANIA">LO QUE PAGÓ TANIA</option>
-            <option value="FILTRO_JC">LISTA SOLO JC</option>
+        <label>FILTRO PRINCIPAL</label>
+        <select id="filtro-principal" onchange="cargarHistorial()">
+            <option value="TODO">GASTOS CASA (TODO)</option>
+            <option value="JUAN">LO QUE PAGÓ JUAN</option>
+            <option value="TANIA">LO QUE PAGÓ TANIA</option>
+            <option value="JC">LISTA SOLO JC</option>
         </select>
+        
+        <label style="margin-top:15px">FILTRO PERSONALIZADO</label>
+        <button id="btn-filtro-multiple" class="btn-outline" onclick="abrirModalFiltro()">🔍 SUMAR VARIOS RUBROS</button>
     </div>
+    
     <div class="nav-mes">
         <button class="btn-nav" onclick="cambiarMesHistorial(-1)">◀</button>
         <h4 id="titulo-mes-historial">MES</h4>
@@ -220,6 +236,20 @@
     </div>
 </div>
 
+<!-- Modal Filtro Múltiple -->
+<div id="modal-filtro" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">SELECCIONA QUÉ SUMAR</div>
+        <div class="modal-body" id="modal-lista-rubros">
+            <!-- Checkboxes generados dinámicamente -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn-juan" onclick="aplicarFiltroMultiple()" style="margin-bottom:10px">APLICAR FILTRO</button>
+            <button class="btn-grey" onclick="limpiarFiltroMultiple()" style="margin-bottom:0">MOSTRAR TODO</button>
+        </div>
+    </div>
+</div>
+
 <script>
     // Configuración Firebase
     const firebaseConfig = {
@@ -238,6 +268,7 @@
     let fechaHistorialView = new Date();
     let fechaBalanceView = new Date();
     let balanceActual = {};
+    let rubrosFiltroMultiple = []; // Almacena los rubros tildados
 
     // --- Inicio automático ---
     window.onload = () => {
@@ -245,7 +276,6 @@
     };
 
     async function inicializarApp() {
-        // Carga de categorías dinámicas
         const snap = await db.ref('config/categorias').once('value');
         if(snap.exists()) { listas = snap.val(); } 
         else {
@@ -274,15 +304,12 @@
                 const mesSel = document.getElementById(`mes-${t}`);
                 const anioSel = document.getElementById(`anio-${t}`);
                 mesSel.innerHTML = ""; anioSel.innerHTML = "";
-                mesesNombres.forEach((m, i) => mesSel.innerHTML += `<option value="${i+1}" ${i === hoy.getMonth() ? 'selected' : ''}>${m}</option>`);
+                mesesNombres.forEach((m, i) => mesSel.innerHTML += `<option value="${i+1}" ${i === hoy.getMonth() ? 'selected' : ''}>${m}</option>`;
                 for(let a = 2025; a <= 2027; a++) anioSel.innerHTML += `<option value="${a}" ${a === hoy.getFullYear() ? 'selected' : ''}>${a}</option>`;
             }
         });
 
-        const filRubro = document.getElementById('filtro-rubro');
-        filRubro.innerHTML = `<option value="FILTRO_CASA">GASTOS CASA (TODO)</option><option value="FILTRO_JUAN">LO QUE PAGÓ JUAN</option><option value="FILTRO_TANIA">LO QUE PAGÓ TANIA</option><option value="FILTRO_JC">LISTA SOLO JC</option>`;
-        [...listas.diarios, ...listas.mensuales, ...listas.jc].sort().forEach(i => { filRubro.innerHTML += `<option value="${i}">${i}</option>`; });
-
+        // Llenar Gestión de Ajustes
         const gestionDiv = document.getElementById('lista-gestion-rubros');
         gestionDiv.innerHTML = "";
         ['diarios','mensuales','jc'].forEach(tipo => {
@@ -291,8 +318,71 @@
                 gestionDiv.innerHTML += `<div class="config-item"><span>${item}</span><button style="width:auto; padding:5px 10px; background:#fee2e2; color:#ef4444; margin:0; font-size:10px" onclick="eliminarRubro('${tipo}', '${item}')">BORRAR</button></div>`;
             });
         });
+
+        // Preparar Modal de Filtro Múltiple
+        generarCheckboxesFiltro();
     }
 
+    // --- Lógica del Filtro Múltiple (Nuevo) ---
+    function generarCheckboxesFiltro() {
+        const modalBody = document.getElementById('modal-lista-rubros');
+        modalBody.innerHTML = "";
+        
+        // Unir todos los rubros, quitar duplicados (por si acaso) y ordenar alfabéticamente
+        const todosLosRubros = [...new Set([...listas.diarios, ...listas.mensuales, ...listas.jc])].sort();
+        
+        todosLosRubros.forEach(rubro => {
+            modalBody.innerHTML += `
+                <label class="checkbox-item">
+                    <input type="checkbox" value="${rubro}" class="filtro-checkbox"> ${rubro}
+                </label>
+            `;
+        });
+    }
+
+    function abrirModalFiltro() {
+        document.getElementById('modal-filtro').style.display = 'flex';
+        // Marcar los que ya estaban seleccionados
+        const checkboxes = document.querySelectorAll('.filtro-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = rubrosFiltroMultiple.includes(cb.value);
+        });
+    }
+
+    function aplicarFiltroMultiple() {
+        rubrosFiltroMultiple = [];
+        const checkboxes = document.querySelectorAll('.filtro-checkbox');
+        checkboxes.forEach(cb => {
+            if(cb.checked) rubrosFiltroMultiple.push(cb.value);
+        });
+        
+        document.getElementById('modal-filtro').style.display = 'none';
+        
+        const btn = document.getElementById('btn-filtro-multiple');
+        if(rubrosFiltroMultiple.length > 0) {
+            btn.innerHTML = `🔍 SUMANDO ${rubrosFiltroMultiple.length} RUBROS (Toca para editar)`;
+            btn.style.background = "var(--juan-light)";
+            btn.style.color = "white";
+        } else {
+            btn.innerHTML = "🔍 SUMAR VARIOS RUBROS";
+            btn.style.background = "white";
+            btn.style.color = "var(--juan-dark)";
+        }
+        
+        cargarHistorial();
+    }
+
+    function limpiarFiltroMultiple() {
+        rubrosFiltroMultiple = [];
+        const btn = document.getElementById('btn-filtro-multiple');
+        btn.innerHTML = "🔍 SUMAR VARIOS RUBROS";
+        btn.style.background = "white";
+        btn.style.color = "var(--juan-dark)";
+        document.getElementById('modal-filtro').style.display = 'none';
+        cargarHistorial();
+    }
+
+    // --- Gestión de Configuración ---
     async function agregarNuevoRubro() {
         const nombre = document.getElementById('nuevo-item-nombre').value.toUpperCase().trim();
         const tipo = document.getElementById('nuevo-item-tipo').value;
@@ -308,9 +398,12 @@
             listas[tipo] = listas[tipo].filter(i => i !== nombre);
             await db.ref('config/categorias').set(listas);
             cargarInterfazListas();
+            // Limpiar del filtro por si estaba seleccionado
+            rubrosFiltroMultiple = rubrosFiltroMultiple.filter(i => i !== nombre);
         }
     }
 
+    // --- Guardado de Gastos ---
     async function guardarGasto(tipo, pagador) {
         const tab = tipo.toLowerCase();
         const item = document.getElementById(`select-${tab}`).value;
@@ -359,6 +452,7 @@
         document.getElementById(`nota-${tipo}`).style.display = rubrosNota.includes(item) ? "block" : "none";
     }
 
+    // --- Vistas y Lógica de Lectura ---
     function refrescarVistas() {
         if(document.getElementById('HISTORIAL').classList.contains('active')) cargarHistorial();
         if(document.getElementById('BALANCE').classList.contains('active')) calcularBalance();
@@ -368,20 +462,34 @@
     function cambiarMesBalance(n) { fechaBalanceView.setMonth(fechaBalanceView.getMonth() + n); refrescarVistas(); }
 
     function cargarHistorial() {
-        const filtro = document.getElementById('filtro-rubro').value;
+        const filtroPrincipal = document.getElementById('filtro-principal').value;
         const mesAnio = `${fechaHistorialView.getMonth() + 1}-${fechaHistorialView.getFullYear()}`;
         document.getElementById('titulo-mes-historial').innerText = `${mesesNombres[fechaHistorialView.getMonth()]} ${fechaHistorialView.getFullYear()}`;
+        
         db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
             let html = ""; let total = 0;
             s.forEach(c => {
                 const g = c.val(); g.id = c.key;
-                let mostrar = (filtro === 'FILTRO_CASA' && g.tipo !== 'JC') || (filtro === 'FILTRO_JUAN' && g.pagador === 'JUAN' && g.tipo !== 'JC') || (filtro === 'FILTRO_TANIA' && g.pagador === 'TANIA' && g.tipo !== 'JC') || (filtro === 'FILTRO_JC' && g.tipo === 'JC') || (g.item === filtro);
-                if(mostrar) {
+                
+                // 1. Chequeo Filtro Principal
+                let pasaGeneral = false;
+                if(filtroPrincipal === 'TODO' && g.tipo !== 'JC') pasaGeneral = true;
+                else if(filtroPrincipal === 'JUAN' && g.pagador === 'JUAN' && g.tipo !== 'JC') pasaGeneral = true;
+                else if(filtroPrincipal === 'TANIA' && g.pagador === 'TANIA' && g.tipo !== 'JC') pasaGeneral = true;
+                else if(filtroPrincipal === 'JC' && g.tipo === 'JC') pasaGeneral = true;
+
+                // 2. Chequeo Filtro Múltiple (Checkbox)
+                let pasaRubro = true;
+                if(rubrosFiltroMultiple.length > 0 && !rubrosFiltroMultiple.includes(g.item)) {
+                    pasaRubro = false;
+                }
+
+                if(pasaGeneral && pasaRubro) {
                     html += `<div class="historial-item"><div><small>${g.fecha.split('-')[2]}/${g.fecha.split('-')[1]}</small> <b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<small>${g.pagador}</small></div><div style="text-align:right"><b>$${g.monto}</b> <button style="width:auto; padding:5px; background:none; color:red; border:none; cursor:pointer" onclick="eliminarGasto('${g.id}')">✕</button></div></div>`;
                     total += g.monto;
                 }
             });
-            document.getElementById('lista-historial').innerHTML = html || "<p style='text-align:center; color:#64748b'>Sin gastos registrados.</p>";
+            document.getElementById('lista-historial').innerHTML = html || "<p style='text-align:center; color:#64748b; margin-top:20px'>Sin gastos con estos filtros.</p>";
             document.getElementById('total-acumulado').innerText = `$${total.toFixed(0)}`;
         });
     }
@@ -445,4 +553,4 @@
     }
 </script>
 </body>
-</html>
+    </html>
