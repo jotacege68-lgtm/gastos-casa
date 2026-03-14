@@ -302,7 +302,6 @@
         };
 
         // --- SISTEMA DE AUTOSANADO ---
-        // Si detecta que Firebase vació alguna lista, la restaura automáticamente
         let necesitaGuardar = false;
 
         if (listas.diarios.length === 0) {
@@ -318,7 +317,6 @@
             necesitaGuardar = true;
         }
 
-        // Guarda la restauración en la nube si fue necesario
         if (necesitaGuardar) {
             await db.ref('config/categorias').set(listas);
         }
@@ -346,9 +344,7 @@
             }
         });
 
-        const filRubro = document.getElementById('filtro-rubro');
-        filRubro.innerHTML = `<option value="FILTRO_CASA">GASTOS CASA (TODO)</option><option value="FILTRO_JUAN">LO QUE PAGÓ JUAN</option><option value="FILTRO_TANIA">LO QUE PAGÓ TANIA</option><option value="FILTRO_JC">LISTA SOLO JC</option>`;
-        [...listas.diarios, ...listas.mensuales, ...listas.jc].sort().forEach(i => { filRubro.innerHTML += `<option value="${i}">${i}</option>`; });
+        // EL ERROR ESTABA AQUÍ, ESTO SE HA ELIMINADO PARA QUE NO CHOQUE
 
         // Llenado seguro de la sección CATEGORIAS ACTUALES
         const gestionDiv = document.getElementById('lista-gestion-rubros');
