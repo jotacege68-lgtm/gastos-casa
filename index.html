@@ -30,6 +30,7 @@
             --header-h: 75px;
             --radius: 20px;
             --shadow-md: 0 4px 20px rgba(0,0,0,0.12);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.16);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -281,19 +282,47 @@
     let balanceActual = {};
     let rubrosFiltroMultiple = [];
 
+    // --- ESCUDO PROTECTOR PARA LISTAS ---
+    function obtenerArray(obj) {
+        if (!obj) return [];
+        if (Array.isArray(obj)) return obj.filter(Boolean);
+        return Object.values(obj).filter(Boolean);
+    }
+
     window.onload = () => { inicializarApp(); };
 
     async function inicializarApp() {
         const snap = await db.ref('config/categorias').once('value');
-        if(snap.exists()) { listas = snap.val(); } 
-        else {
-            listas = {
-                diarios: ["AGUA", "AUTO GASTOS", "AVICOLA", "BOLSAS", "CARNICERIA", "CASA VARIOS", "COMBUSTIBLE", "COMIDAS AFUERA", "DENTISTA", "EMPANADAS", "FARMACIA", "FCA. PASTAS", "FERIA PAPEL/CAFE", "FERIA VARIOS", "FERIA VERDURA", "FERRETERIA", "GASTOS ARTIGAS", "GATA COMIDA-PIEDRAS", "LA MOLIENDA", "LAVANDERIA", "PANADERIA", "PANADERIA S/G", "PEAJES", "PESCADERIA", "PIZZA", "PROPINAS", "REGALOS", "SUPERGAS", "SUPERMERCADO", "VARIOS", "VERDULERIA", "VETERINARIA EXTRAS"],
-                mensuales: ["A.N.V Juan", "A.N.V. Tania", "ABERTURAS", "CASA VARIOS", "ELECTRICIDAD", "ESPAÑOLA MOVIL", "GASTOS COMUNES DOLARES", "GASTOS COMUNES PESOS", "HBO", "INTERNET", "NETFLIX", "OLLA LEO FA", "SERVICIO FUNEBRE", "VARIOS", "VETERINARIA", "TARJETA BROU REC.", "TARJETA ITAU", "TARJETA OCA", "MANTENIMIENTO AUTO", "CONTRIBUCION INMOBILIARIA", "IMP. PRIMARIA", "IMP. PUERTA", "PATENTE RODADOS", "SEGURO CASA Y AUTO"],
-                jc: ["EL TUNEL", "LA MOLIENDA", "CLUB AEBU", "MOVILES", "MEDICAMENTOS ESP.", "GASTOS OCA", "GASTOS ITAU", "GASTOS SANTANDER"]
-            };
+        let data = snap.exists() ? snap.val() : {};
+
+        listas = {
+            diarios: obtenerArray(data.diarios),
+            mensuales: obtenerArray(data.mensuales),
+            jc: obtenerArray(data.jc)
+        };
+
+        // --- SISTEMA DE AUTOSANADO ---
+        // Si detecta que Firebase vació alguna lista, la restaura automáticamente
+        let necesitaGuardar = false;
+
+        if (listas.diarios.length === 0) {
+            listas.diarios = ["AGUA", "AUTO GASTOS", "AVICOLA", "BOLSAS", "CARNICERIA", "CASA VARIOS", "COMBUSTIBLE", "COMIDAS AFUERA", "DENTISTA", "EMPANADAS", "FARMACIA", "FCA. PASTAS", "FERIA PAPEL/CAFE", "FERIA VARIOS", "FERIA VERDURA", "FERRETERIA", "GASTOS ARTIGAS", "GATA COMIDA-PIEDRAS", "LA MOLIENDA", "LAVANDERIA", "PANADERIA", "PANADERIA S/G", "PEAJES", "PESCADERIA", "PIZZA", "PROPINAS", "REGALOS", "SUPERGAS", "SUPERMERCADO", "VARIOS", "VERDULERIA", "VETERINARIA EXTRAS"];
+            necesitaGuardar = true;
+        }
+        if (listas.mensuales.length === 0) {
+            listas.mensuales = ["A.N.V Juan", "A.N.V. Tania", "ABERTURAS", "CASA VARIOS", "ELECTRICIDAD", "ESPAÑOLA MOVIL", "GASTOS COMUNES DOLARES", "GASTOS COMUNES PESOS", "HBO", "INTERNET", "NETFLIX", "OLLA LEO FA", "SERVICIO FUNEBRE", "VARIOS", "VETERINARIA", "TARJETA BROU REC.", "TARJETA ITAU", "TARJETA OCA", "MANTENIMIENTO AUTO", "CONTRIBUCION INMOBILIARIA", "IMP. PRIMARIA", "IMP. PUERTA", "PATENTE RODADOS", "SEGURO CASA Y AUTO"];
+            necesitaGuardar = true;
+        }
+        if (listas.jc.length === 0) {
+            listas.jc = ["EL TUNEL", "LA MOLIENDA", "CLUB AEBU", "MOVILES", "MEDICAMENTOS ESP.", "GASTOS OCA", "GASTOS ITAU", "GASTOS SANTANDER"];
+            necesitaGuardar = true;
+        }
+
+        // Guarda la restauración en la nube si fue necesario
+        if (necesitaGuardar) {
             await db.ref('config/categorias').set(listas);
         }
+
         cargarInterfazListas();
         refrescarVistas();
     }
@@ -321,6 +350,7 @@
         filRubro.innerHTML = `<option value="FILTRO_CASA">GASTOS CASA (TODO)</option><option value="FILTRO_JUAN">LO QUE PAGÓ JUAN</option><option value="FILTRO_TANIA">LO QUE PAGÓ TANIA</option><option value="FILTRO_JC">LISTA SOLO JC</option>`;
         [...listas.diarios, ...listas.mensuales, ...listas.jc].sort().forEach(i => { filRubro.innerHTML += `<option value="${i}">${i}</option>`; });
 
+        // Llenado seguro de la sección CATEGORIAS ACTUALES
         const gestionDiv = document.getElementById('lista-gestion-rubros');
         gestionDiv.innerHTML = "";
         ['diarios','mensuales','jc'].forEach(tipo => {
@@ -372,16 +402,20 @@
         cargarHistorial();
     }
 
-    // --- Configuración ---
+    // --- Configuración Segura ---
     async function agregarNuevoRubro() {
         const nombre = document.getElementById('nuevo-item-nombre').value.toUpperCase().trim();
         const tipo = document.getElementById('nuevo-item-tipo').value;
-        if(!nombre) return alert("Escribe un nombre");
+        
+        if(!nombre) return alert("Por favor, escribe un nombre para el rubro.");
+        if(listas[tipo].includes(nombre)) return alert("Ese rubro ya existe en la lista.");
+
         listas[tipo].push(nombre);
         await db.ref('config/categorias').set(listas);
+        
         document.getElementById('nuevo-item-nombre').value = "";
         cargarInterfazListas();
-        alert("Rubro agregado correctamente.");
+        alert("✅ Rubro agregado correctamente.");
     }
 
     async function eliminarRubro(tipo, nombre) {
@@ -431,17 +465,14 @@
         }
         await Promise.all(promesas);
         
-        // Limpiar campos
         document.getElementById(`monto-${tab}`).value = ""; 
         document.getElementById(`nota-${tab}`).value = "";
         
-        // Preparar mensaje WhatsApp
         let textoWA = `¡Hola! Acabo de registrar un gasto en la app de la casa 🏠\n\n🛒 *Rubro:* ${item}\n💰 *Monto:* $${monto}\n👤 *Pagó:* ${pagador}`;
         if(nota) textoWA += `\n📝 *Nota:* ${nota}`;
         
         const urlWA = `https://wa.me/?text=${encodeURIComponent(textoWA)}`;
         
-        // Configurar botón y mostrar Modal
         document.getElementById('btn-enviar-wa').onclick = () => {
             window.open(urlWA, '_blank');
             cerrarModalWhatsapp();
