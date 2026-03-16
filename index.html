@@ -189,7 +189,7 @@
             <option value="DIARIOS_TANIA">SOLO DIARIOS TANIA</option>
             <option value="MENSUALES_JUAN">SOLO MENSUALES JUAN</option>
             <option value="MENSUALES_TANIA">SOLO MENSUALES TANIA</option>
-            <option value="DIARIOS_CUOTAS_TANIA">DIARIOS + CUOTAS TANIA (SIN PATENTE RODADOS)</option>
+            <option value="DIARIOS_CUOTAS_TANIA">DIARIOS + CUOTAS TANIA (SIN PATENTE NI MENSUALES)</option>
             <option value="JC">LISTA SOLO JC</option>
         </select>
         
@@ -350,7 +350,6 @@
             }
         });
 
-        // Actualizamos las opciones del filtro principal por JS
         const filRubro = document.getElementById('filtro-principal');
         filRubro.innerHTML = `
             <option value="TODO">GASTOS CASA (TODO)</option>
@@ -361,7 +360,7 @@
             <option value="DIARIOS_TANIA">SOLO DIARIOS TANIA</option>
             <option value="MENSUALES_JUAN">SOLO MENSUALES JUAN</option>
             <option value="MENSUALES_TANIA">SOLO MENSUALES TANIA</option>
-            <option value="DIARIOS_CUOTAS_TANIA">DIARIOS + CUOTAS TANIA (SIN PATENTE RODADOS)</option>
+            <option value="DIARIOS_CUOTAS_TANIA">DIARIOS + CUOTAS TANIA (SIN PATENTE NI MENSUALES)</option>
             <option value="JC">LISTA SOLO JC</option>
         `;
 
@@ -540,9 +539,10 @@
                 else if (filtroPrincipal === 'MENSUALES_TANIA' && g.tipo === 'MENSUALES' && g.pagador === 'TANIA') pasaGeneral = true;
                 else if (filtroPrincipal === 'DIARIOS_CUOTAS_TANIA') {
                     if (g.pagador === 'TANIA') {
+                        // Solamente suma los que son DIARIOS o los que son JC
                         if (g.tipo === 'DIARIOS') pasaGeneral = true;
-                        // EXCLUSIÓN EXACTA: Descarta solo si el item es "PATENTE RODADOS"
-                        else if ((g.tipo === 'MENSUALES' || g.tipo === 'JC') && g.item !== 'PATENTE RODADOS') pasaGeneral = true;
+                        else if (g.tipo === 'JC' && g.item !== 'PATENTE RODADOS') pasaGeneral = true;
+                        // NO se incluye g.tipo === 'MENSUALES' bajo ninguna circunstancia
                     }
                 }
 
