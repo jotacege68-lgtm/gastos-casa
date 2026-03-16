@@ -183,8 +183,13 @@
         <select id="filtro-principal" onchange="cargarHistorial()">
             <option value="TODO">GASTOS CASA (TODO)</option>
             <option value="MENSUALES">SOLO MENSUALES (VER PENDIENTES)</option>
-            <option value="JUAN">LO QUE PAGÓ JUAN</option>
-            <option value="TANIA">LO QUE PAGÓ TANIA</option>
+            <option value="JUAN">TODO LO QUE PAGÓ JUAN</option>
+            <option value="TANIA">TODO LO QUE PAGÓ TANIA</option>
+            <option value="DIARIOS_JUAN">SOLO DIARIOS JUAN</option>
+            <option value="DIARIOS_TANIA">SOLO DIARIOS TANIA</option>
+            <option value="MENSUALES_JUAN">SOLO MENSUALES JUAN</option>
+            <option value="MENSUALES_TANIA">SOLO MENSUALES TANIA</option>
+            <option value="DIARIOS_CUOTAS_TANIA">DIARIOS + CUOTAS TANIA (SIN PATENTE RODADOS)</option>
             <option value="JC">LISTA SOLO JC</option>
         </select>
         
@@ -345,6 +350,21 @@
             }
         });
 
+        // Actualizamos las opciones del filtro principal por JS
+        const filRubro = document.getElementById('filtro-principal');
+        filRubro.innerHTML = `
+            <option value="TODO">GASTOS CASA (TODO)</option>
+            <option value="MENSUALES">SOLO MENSUALES (VER PENDIENTES)</option>
+            <option value="JUAN">TODO LO QUE PAGÓ JUAN</option>
+            <option value="TANIA">TODO LO QUE PAGÓ TANIA</option>
+            <option value="DIARIOS_JUAN">SOLO DIARIOS JUAN</option>
+            <option value="DIARIOS_TANIA">SOLO DIARIOS TANIA</option>
+            <option value="MENSUALES_JUAN">SOLO MENSUALES JUAN</option>
+            <option value="MENSUALES_TANIA">SOLO MENSUALES TANIA</option>
+            <option value="DIARIOS_CUOTAS_TANIA">DIARIOS + CUOTAS TANIA (SIN PATENTE RODADOS)</option>
+            <option value="JC">LISTA SOLO JC</option>
+        `;
+
         const gestionDiv = document.getElementById('lista-gestion-rubros');
         gestionDiv.innerHTML = "";
         ['diarios','mensuales','jc'].forEach(tipo => {
@@ -486,7 +506,7 @@
         document.getElementById(`nota-${tipo}`).style.display = rubrosNota.includes(item) ? "block" : "none";
     }
 
-    // --- Vistas ---
+    // --- Vistas y Filtros Historial ---
     function refrescarVistas() {
         if(document.getElementById('HISTORIAL').classList.contains('active')) cargarHistorial();
         if(document.getElementById('BALANCE').classList.contains('active')) calcularBalance();
@@ -502,17 +522,29 @@
         
         db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
             let html = ""; let total = 0;
-            let pagadosMensuales = []; // Para trackear los mensuales pagados
+            let pagadosMensuales = []; 
 
             s.forEach(c => {
                 const g = c.val(); g.id = c.key;
-                
                 let pasaGeneral = false;
-                if(filtroPrincipal === 'TODO' && g.tipo !== 'JC') pasaGeneral = true;
-                else if(filtroPrincipal === 'JUAN' && g.pagador === 'JUAN' && g.tipo !== 'JC') pasaGeneral = true;
-                else if(filtroPrincipal === 'TANIA' && g.pagador === 'TANIA' && g.tipo !== 'JC') pasaGeneral = true;
-                else if(filtroPrincipal === 'JC' && g.tipo === 'JC') pasaGeneral = true;
-                else if(filtroPrincipal === 'MENSUALES' && g.tipo === 'MENSUALES') pasaGeneral = true;
+                
+                if (filtroPrincipal === 'TODO' && g.tipo !== 'JC') pasaGeneral = true;
+                else if (filtroPrincipal === 'MENSUALES' && g.tipo === 'MENSUALES') pasaGeneral = true;
+                else if (filtroPrincipal === 'JUAN' && g.pagador === 'JUAN' && g.tipo !== 'JC') pasaGeneral = true;
+                else if (filtroPrincipal === 'TANIA' && g.pagador === 'TANIA' && g.tipo !== 'JC') pasaGeneral = true;
+                else if (filtroPrincipal === 'JC' && g.tipo === 'JC') pasaGeneral = true;
+                
+                else if (filtroPrincipal === 'DIARIOS_JUAN' && g.tipo === 'DIARIOS' && g.pagador === 'JUAN') pasaGeneral = true;
+                else if (filtroPrincipal === 'DIARIOS_TANIA' && g.tipo === 'DIARIOS' && g.pagador === 'TANIA') pasaGeneral = true;
+                else if (filtroPrincipal === 'MENSUALES_JUAN' && g.tipo === 'MENSUALES' && g.pagador === 'JUAN') pasaGeneral = true;
+                else if (filtroPrincipal === 'MENSUALES_TANIA' && g.tipo === 'MENSUALES' && g.pagador === 'TANIA') pasaGeneral = true;
+                else if (filtroPrincipal === 'DIARIOS_CUOTAS_TANIA') {
+                    if (g.pagador === 'TANIA') {
+                        if (g.tipo === 'DIARIOS') pasaGeneral = true;
+                        // EXCLUSIÓN EXACTA: Descarta solo si el item es "PATENTE RODADOS"
+                        else if ((g.tipo === 'MENSUALES' || g.tipo === 'JC') && g.item !== 'PATENTE RODADOS') pasaGeneral = true;
+                    }
+                }
 
                 let pasaRubro = true;
                 if(rubrosFiltroMultiple.length > 0 && !rubrosFiltroMultiple.includes(g.item)) pasaRubro = false;
@@ -522,12 +554,9 @@
                     total += g.monto;
                 }
 
-                if (g.tipo === 'MENSUALES') {
-                    pagadosMensuales.push(g.item);
-                }
+                if (g.tipo === 'MENSUALES') pagadosMensuales.push(g.item);
             });
 
-            // Si el filtro es "MENSUALES" y NO hay filtros múltiples activos, agregamos los pendientes al final
             if (filtroPrincipal === 'MENSUALES' && rubrosFiltroMultiple.length === 0) {
                 const faltantes = listas.mensuales.filter(r => !pagadosMensuales.includes(r)).sort();
                 if (faltantes.length > 0) {
@@ -536,7 +565,7 @@
                 }
             }
 
-            document.getElementById('lista-historial').innerHTML = html || "<p style='text-align:center; color:#64748b; margin-top:20px'>Sin gastos registrados.</p>";
+            document.getElementById('lista-historial').innerHTML = html || "<p style='text-align:center; color:#64748b; margin-top:20px'>Sin gastos con estos filtros.</p>";
             document.getElementById('total-acumulado').innerText = `$${total.toFixed(0)}`;
         });
     }
