@@ -307,9 +307,7 @@
             jc: obtenerArray(data.jc)
         };
 
-        // --- SISTEMA DE AUTOSANADO ---
         let necesitaGuardar = false;
-
         if (listas.diarios.length === 0) {
             listas.diarios = ["AGUA", "AUTO GASTOS", "AVICOLA", "BOLSAS", "CARNICERIA", "CASA VARIOS", "COMBUSTIBLE", "COMIDAS AFUERA", "DENTISTA", "EMPANADAS", "FARMACIA", "FCA. PASTAS", "FERIA PAPEL/CAFE", "FERIA VARIOS", "FERIA VERDURA", "FERRETERIA", "GASTOS ARTIGAS", "GATA COMIDA-PIEDRAS", "LA MOLIENDA", "LAVANDERIA", "PANADERIA", "PANADERIA S/G", "PEAJES", "PESCADERIA", "PIZZA", "PROPINAS", "REGALOS", "SUPERGAS", "SUPERMERCADO", "VARIOS", "VERDULERIA", "VETERINARIA EXTRAS"];
             necesitaGuardar = true;
@@ -376,7 +374,6 @@
         generarCheckboxesFiltro();
     }
 
-    // --- Filtro Múltiple ---
     function generarCheckboxesFiltro() {
         const modalBody = document.getElementById('modal-lista-rubros');
         modalBody.innerHTML = "";
@@ -398,10 +395,10 @@
         
         const btn = document.getElementById('btn-filtro-multiple');
         if(rubrosFiltroMultiple.length > 0) {
-            btn.innerHTML = `🔍 SUMANDO ${rubrosFiltroMultiple.length} RUBROS (Toca para editar)`;
+            btn.innerHTML = `SUMANDO ${rubrosFiltroMultiple.length} RUBROS (Toca para editar)`;
             btn.style.background = "var(--juan-light)"; btn.style.color = "white";
         } else {
-            btn.innerHTML = "🔍 SUMAR VARIOS RUBROS";
+            btn.innerHTML = "SUMAR VARIOS RUBROS";
             btn.style.background = "white"; btn.style.color = "var(--juan-dark)";
         }
         cargarHistorial();
@@ -410,12 +407,11 @@
     function limpiarFiltroMultiple() {
         rubrosFiltroMultiple = [];
         const btn = document.getElementById('btn-filtro-multiple');
-        btn.innerHTML = "🔍 SUMAR VARIOS RUBROS"; btn.style.background = "white"; btn.style.color = "var(--juan-dark)";
+        btn.innerHTML = "SUMAR VARIOS RUBROS"; btn.style.background = "white"; btn.style.color = "var(--juan-dark)";
         document.getElementById('modal-filtro').style.display = 'none';
         cargarHistorial();
     }
 
-    // --- Configuración Segura ---
     async function agregarNuevoRubro() {
         const nombre = document.getElementById('nuevo-item-nombre').value.toUpperCase().trim();
         const tipo = document.getElementById('nuevo-item-tipo').value;
@@ -428,7 +424,7 @@
         
         document.getElementById('nuevo-item-nombre').value = "";
         cargarInterfazListas();
-        alert("✅ Rubro agregado correctamente.");
+        alert("Rubro agregado correctamente.");
     }
 
     async function eliminarRubro(tipo, nombre) {
@@ -440,7 +436,6 @@
         }
     }
 
-    // --- Guardado y WhatsApp ---
     async function guardarGasto(tipo, pagador) {
         const tab = tipo.toLowerCase();
         const item = document.getElementById(`select-${tab}`).value;
@@ -481,8 +476,8 @@
         document.getElementById(`monto-${tab}`).value = ""; 
         document.getElementById(`nota-${tab}`).value = "";
         
-        let textoWA = `¡Hola! Acabo de registrar un gasto en la app de la casa 🏠\n\n🛒 *Rubro:* ${item}\n💰 *Monto:* $${monto}\n👤 *Pagó:* ${pagador}`;
-        if(nota) textoWA += `\n📝 *Nota:* ${nota}`;
+        let textoWA = `Hola! Acabo de registrar un gasto en la app de la casa\n\nRubro: ${item}\nMonto: $${monto}\nPagó: ${pagador}`;
+        if(nota) textoWA += `\nNota: ${nota}`;
         
         const urlWA = `https://wa.me/?text=${encodeURIComponent(textoWA)}`;
         
@@ -505,7 +500,6 @@
         document.getElementById(`nota-${tipo}`).style.display = rubrosNota.includes(item) ? "block" : "none";
     }
 
-    // --- Vistas y Filtros Historial ---
     function refrescarVistas() {
         if(document.getElementById('HISTORIAL').classList.contains('active')) cargarHistorial();
         if(document.getElementById('BALANCE').classList.contains('active')) calcularBalance();
@@ -539,10 +533,8 @@
                 else if (filtroPrincipal === 'MENSUALES_TANIA' && g.tipo === 'MENSUALES' && g.pagador === 'TANIA') pasaGeneral = true;
                 else if (filtroPrincipal === 'DIARIOS_CUOTAS_TANIA') {
                     if (g.pagador === 'TANIA') {
-                        // Solamente suma los que son DIARIOS o los que son JC
                         if (g.tipo === 'DIARIOS') pasaGeneral = true;
                         else if (g.tipo === 'JC' && g.item !== 'PATENTE RODADOS') pasaGeneral = true;
-                        // NO se incluye g.tipo === 'MENSUALES' bajo ninguna circunstancia
                     }
                 }
 
@@ -599,18 +591,41 @@
 
     function cerrarMes() {
         if(confirm(`¿Guardar cierre definitivo de ${balanceActual.mesAnio}?`)) {
-            db.ref(`cierres/${balanceActual.mesAnio}`).set({ ...balanceActual, fechaCierre: new Date().toISOString() }).then(() => alert("Cierre guardado correctamente."));
+            db.ref(`cierres/${balanceActual.mesAnio}`).set({ ...balanceActual, fechaCierre: new Date().toISOString() }).then(() => {
+                alert("Cierre guardado correctamente.");
+                cargarCierres(); // ¡Esta línea faltaba! Actualiza la lista al instante.
+            });
         }
     }
 
     function cargarCierres() {
         db.ref('cierres').once('value', s => {
-            let cierres = []; s.forEach(c => cierres.push(c.val()));
+            let cierres = [];
+            
+            s.forEach(c => {
+                let data = c.val();
+                // ESCUDO PROTECTOR DE FORMATO: Si falta mesAnio, lo saca de la clave de Firebase
+                if (!data.mesAnio) data.mesAnio = c.key; 
+                cierres.push(data);
+            });
+            
             cierres.sort((a,b) => new Date(b.fechaCierre) - new Date(a.fechaCierre));
             let h = "<h4>HISTORIAL DE CIERRES</h4>";
+            
             cierres.forEach(r => {
+                // Traducción robusta de números a nombres de meses
+                let tituloAmigable = r.mesAnio; 
+                if (r.mesAnio && r.mesAnio.includes('-')) {
+                    let partes = r.mesAnio.split('-');
+                    let mesIdx = parseInt(partes[0]) - 1;
+                    if (mesesNombres[mesIdx]) {
+                        tituloAmigable = `${mesesNombres[mesIdx]} ${partes[1]}`;
+                    }
+                }
+
                 h += `<div class="card" style="font-size:12px; padding:12px; margin-bottom:8px;">
-                    <b>${r.mesAnio}</b> | J: $${r.j} - T: $${r.t}<br>
+                    <b style="font-size:14px; color:var(--juan-dark)">${tituloAmigable}</b><br>
+                    J: $${r.j} - T: $${r.t}<br>
                     <div style="margin-top:5px; font-weight:bold; color:${r.deudaJuan > 0 ? '#b91c1c' : '#9d174d'}">
                         ${r.deudaJuan > 0 ? 'Juan debió' : 'Tania debió'}: $${Math.abs(r.deudaJuan).toFixed(0)}
                     </div>
