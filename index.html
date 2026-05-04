@@ -593,7 +593,7 @@
         if(confirm(`¿Guardar cierre definitivo de ${balanceActual.mesAnio}?`)) {
             db.ref(`cierres/${balanceActual.mesAnio}`).set({ ...balanceActual, fechaCierre: new Date().toISOString() }).then(() => {
                 alert("Cierre guardado correctamente.");
-                cargarCierres(); // ¡Esta línea faltaba! Actualiza la lista al instante.
+                cargarCierres();
             });
         }
     }
@@ -604,16 +604,26 @@
             
             s.forEach(c => {
                 let data = c.val();
-                // ESCUDO PROTECTOR DE FORMATO: Si falta mesAnio, lo saca de la clave de Firebase
                 if (!data.mesAnio) data.mesAnio = c.key; 
                 cierres.push(data);
             });
             
-            cierres.sort((a,b) => new Date(b.fechaCierre) - new Date(a.fechaCierre));
+            // LA MAGIA ESTÁ AQUÍ: Ordena estrictamente por AÑO y luego por MES
+            cierres.sort((a, b) => {
+                let partesA = a.mesAnio.split('-');
+                let partesB = b.mesAnio.split('-');
+                let mesA = parseInt(partesA[0]);
+                let anioA = parseInt(partesA[1]);
+                let mesB = parseInt(partesB[0]);
+                let anioB = parseInt(partesB[1]);
+                
+                if (anioB !== anioA) return anioB - anioA;
+                return mesB - mesA;
+            });
+
             let h = "<h4>HISTORIAL DE CIERRES</h4>";
             
             cierres.forEach(r => {
-                // Traducción robusta de números a nombres de meses
                 let tituloAmigable = r.mesAnio; 
                 if (r.mesAnio && r.mesAnio.includes('-')) {
                     let partes = r.mesAnio.split('-');
