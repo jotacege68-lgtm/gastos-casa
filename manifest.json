@@ -1,7 +1,7 @@
 {
-  "short_name": "GestiónHogar",
-  "name": "Gestión Hogar - Control de Acceso",
-  "description": "Sistema de gestión para el edificio de Juan",
+  "short_name": "Gastos Casa",
+  "name": "Gastos Casa PRO",
+  "description": "Control de gastos diarios y mensuales",
   "icons": [
     {
       "src": "logohogar.png",
@@ -17,6 +17,6 @@
   ],
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#2563eb"
+  "background_color": "#f0f4f8",
+  "theme_color": "#667eea"
 }
