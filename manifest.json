@@ -1,0 +1,22 @@
+{
+  "short_name": "GestiónHogar",
+  "name": "Gestión Hogar - Control de Acceso",
+  "description": "Sistema de gestión para el edificio de Juan",
+  "icons": [
+    {
+      "src": "logohogar.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logohogar.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb"
+}
