@@ -8,8 +8,8 @@
     <meta name="theme-color" content="#667eea">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Gastos Casa">
-    <link rel="icon" sizes="192x192" href="logohogar.png">
-    <link rel="apple-touch-icon" href="logohogar4.png">
+    <link rel="icon" sizes="192x192" href="logo-oficial.png">
+    <link rel="apple-touch-icon" href="logo-oficial.png">
     
     <!-- Firebase SDK Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -55,14 +55,14 @@
         .tabs::-webkit-scrollbar { display: none; }
 
         .tab-btn {
-            flex: 1; min-width: 80px; border: none; background: transparent;
+            flex: 1; min-width: 70px; border: none; background: transparent;
             font-size: 10px; font-weight: 700; color: rgba(255, 255, 255, 0.7);
             text-transform: uppercase; cursor: pointer; padding: 10px 5px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: all 0.3s; position: relative;
         }
         .tab-btn.active { color: #ffffff !important; background: rgba(255, 255, 255, 0.15); }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 60%; height: 3px; background: white; border-radius: 3px 3px 0 0; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 80%; height: 3px; background: white; border-radius: 3px 3px 0 0; }
 
         .container { padding: 16px; display: none; max-width: 500px; margin: auto; animation: slideUp 0.4s ease; }
         .container.active { display: block; }
@@ -95,7 +95,7 @@
         .historial-item { padding: 15px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 12px; margin-bottom: 8px; }
         .item-nota { font-size: 12px; color: #92400e; background: #fef3c7; padding: 4px 8px; border-radius: 6px; display: inline-block; margin-top: 4px; }
         
-        .total-filtro { background: #1e293b; color: #fbbf24; padding: 20px; border-radius: var(--radius); font-weight: 900; font-size: 26px; text-align: center; margin-bottom: 20px; }
+        .total-filtro { background: #1e293b; color: #fbbf24; padding: 20px; border-radius: var(--radius); font-weight: 900; font-size: 20px; text-align: center; margin-bottom: 20px; display: flex; justify-content: space-around;}
         .subtotal-seccion { background: #f1f5f9; padding: 12px 15px; font-weight: 800; font-size: 13px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #cbd5e1; display: flex; justify-content: space-between; }
 
         .config-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8fafc; border-radius: 10px; margin-bottom: 5px; font-size: 14px; border: 1px solid #e2e8f0; }
@@ -103,6 +103,7 @@
         .resultado { padding: 20px; border-radius: 15px; margin-top: 15px; text-align: center; font-weight: bold; font-size: 18px; }
         .debe-juan { background: #fee2e2; color: #b91c1c; border: 2px solid #fca5a5; }
         .debe-tania { background: #fce7f3; color: #9d174d; border: 2px solid #f9a8d4; }
+        .al-dia { background: #dcfce7; color: #15803d; border: 2px solid #86efac; }
 
         /* Estilos de Modales */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
@@ -120,6 +121,7 @@
     <button class="tab-btn active" onclick="showTab('DIARIOS', this)">DIARIO</button>
     <button class="tab-btn" onclick="showTab('MENSUALES', this)">MENSUAL</button>
     <button class="tab-btn" onclick="showTab('JC', this)">SOLO JC</button>
+    <button class="tab-btn" style="color:#6ee7b7" onclick="showTab('DOLARES', this)">USD</button>
     <button class="tab-btn" onclick="showTab('HISTORIAL', this)">HISTORIAL</button>
     <button class="tab-btn" onclick="showTab('BALANCE', this)">BALANCE</button>
     <button class="tab-btn" onclick="showTab('CONFIG', this)">AJUSTES</button>
@@ -133,7 +135,7 @@
         <label>RUBRO DIARIO</label>
         <select id="select-diarios" onchange="toggleNota('diarios')"></select>
         <input type="text" id="nota-diarios" style="display:none" placeholder="¿QUÉ SE COMPRÓ?">
-        <input type="number" id="monto-diarios" inputmode="decimal" placeholder="MONTO $">
+        <input type="number" id="monto-diarios" inputmode="decimal" placeholder="MONTO UYU $">
         <button class="btn-juan" onclick="guardarGasto('DIARIOS', 'JUAN')">PAGÓ JUAN</button>
         <button class="btn-tania" onclick="guardarGasto('DIARIOS', 'TANIA')">PAGÓ TANIA</button>
     </div>
@@ -152,7 +154,7 @@
         <input type="text" id="nota-mensuales" style="display:none" placeholder="DETALLE EXTRA">
         <label>CUOTAS</label>
         <input type="number" id="cuotas-mensuales" value="1" min="1" max="24">
-        <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="MONTO $">
+        <input type="number" id="monto-mensuales" inputmode="decimal" placeholder="MONTO UYU $">
         <button class="btn-juan" onclick="guardarGasto('MENSUALES', 'JUAN')">PAGÓ JUAN</button>
         <button class="btn-tania" onclick="guardarGasto('MENSUALES', 'TANIA')">PAGÓ TANIA</button>
     </div>
@@ -171,8 +173,28 @@
         <input type="text" id="nota-jc" style="display:none" placeholder="DETALLE JC">
         <label>CUOTAS</label>
         <input type="number" id="cuotas-jc" value="1" min="1" max="24">
-        <input type="number" id="monto-jc" inputmode="decimal" placeholder="MONTO $">
+        <input type="number" id="monto-jc" inputmode="decimal" placeholder="MONTO UYU $">
         <button class="btn-tania" onclick="guardarGasto('JC', 'TANIA')">PAGÓ TANIA</button>
+    </div>
+</div>
+
+<!-- Dólares -->
+<div id="DOLARES" class="container">
+    <div class="card" style="border: 2px solid #10b981;">
+        <h3 style="margin-top:0; color:#10b981; text-align:center;">GASTOS EN DÓLARES</h3>
+        <label>MES DE CARGA</label>
+        <div class="row">
+            <div><select id="mes-dolares"></select></div>
+            <div><select id="anio-dolares"></select></div>
+        </div>
+        <label>RUBRO DÓLARES</label>
+        <select id="select-dolares" onchange="toggleNota('dolares')"></select>
+        <input type="text" id="nota-dolares" style="display:none" placeholder="DETALLE COMPRA USD">
+        <label>CUOTAS</label>
+        <input type="number" id="cuotas-dolares" value="1" min="1" max="24">
+        <input type="number" id="monto-dolares" inputmode="decimal" placeholder="MONTO U$S">
+        <button class="btn-juan" onclick="guardarGasto('DOLARES', 'JUAN')">PAGÓ JUAN (USD)</button>
+        <button class="btn-tania" onclick="guardarGasto('DOLARES', 'TANIA')">PAGÓ TANIA (USD)</button>
     </div>
 </div>
 
@@ -190,6 +212,7 @@
             <option value="MENSUALES_JUAN">SOLO MENSUALES JUAN</option>
             <option value="MENSUALES_TANIA">SOLO MENSUALES TANIA</option>
             <option value="DIARIOS_CUOTAS_TANIA">DIARIOS + CUOTAS TANIA (SIN PATENTE NI MENSUALES)</option>
+            <option value="DOLARES">SOLO DÓLARES</option>
             <option value="JC">LISTA SOLO JC</option>
         </select>
         
@@ -202,7 +225,11 @@
         <h4 id="titulo-mes-historial">MES</h4>
         <button class="btn-nav" onclick="cambiarMesHistorial(1)">▶</button>
     </div>
-    <div id="total-acumulado" class="total-filtro">$0</div>
+    <div id="total-acumulado" class="total-filtro">
+        <div id="tot-pesos">UYU $0</div>
+        <div style="color: #64748b;">|</div>
+        <div id="tot-usd" style="color: #10b981;">U$S 0</div>
+    </div>
     <div id="lista-historial"></div>
 </div>
 
@@ -234,6 +261,7 @@
                 <option value="diarios">DIARIO</option>
                 <option value="mensuales">MENSUAL</option>
                 <option value="jc">SOLO JC</option>
+                <option value="dolares">DÓLARES</option>
             </select>
         </div>
         <button class="btn-juan" onclick="agregarNuevoRubro()">+ AGREGAR RUBRO</button>
@@ -282,7 +310,7 @@
     const db = firebase.database();
     
     const mesesNombres = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
-    let listas = { diarios: [], mensuales: [], jc: [] };
+    let listas = { diarios: [], mensuales: [], jc: [], dolares: [] };
     let fechaHistorialView = new Date();
     let fechaBalanceView = new Date();
     let balanceActual = {};
@@ -304,7 +332,8 @@
         listas = {
             diarios: obtenerArray(data.diarios),
             mensuales: obtenerArray(data.mensuales),
-            jc: obtenerArray(data.jc)
+            jc: obtenerArray(data.jc),
+            dolares: obtenerArray(data.dolares)
         };
 
         let necesitaGuardar = false;
@@ -320,6 +349,10 @@
             listas.jc = ["EL TUNEL", "LA MOLIENDA", "CLUB AEBU", "MOVILES", "MEDICAMENTOS ESP.", "GASTOS OCA", "GASTOS ITAU", "GASTOS SANTANDER"];
             necesitaGuardar = true;
         }
+        if (listas.dolares.length === 0) {
+            listas.dolares = ["COMPRAS EXTERIOR", "TARJETA USD", "VARIOS USD"];
+            necesitaGuardar = true;
+        }
 
         if (necesitaGuardar) {
             await db.ref('config/categorias').set(listas);
@@ -333,7 +366,7 @@
         const hoy = new Date();
         document.getElementById('fecha-diarios').value = hoy.toISOString().split('T')[0];
 
-        ['diarios','mensuales','jc'].forEach(t => {
+        ['diarios','mensuales','jc','dolares'].forEach(t => {
             const sel = document.getElementById(`select-${t}`);
             if(!sel) return;
             sel.innerHTML = "";
@@ -348,7 +381,9 @@
             }
         });
 
+        // Asegurar que el select mantiene sus opciones correctas (por si se recarga)
         const filRubro = document.getElementById('filtro-principal');
+        const valorActual = filRubro.value || 'TODO';
         filRubro.innerHTML = `
             <option value="TODO">GASTOS CASA (TODO)</option>
             <option value="MENSUALES">SOLO MENSUALES (VER PENDIENTES)</option>
@@ -359,12 +394,14 @@
             <option value="MENSUALES_JUAN">SOLO MENSUALES JUAN</option>
             <option value="MENSUALES_TANIA">SOLO MENSUALES TANIA</option>
             <option value="DIARIOS_CUOTAS_TANIA">DIARIOS + CUOTAS TANIA (SIN PATENTE NI MENSUALES)</option>
+            <option value="DOLARES">SOLO DÓLARES</option>
             <option value="JC">LISTA SOLO JC</option>
         `;
+        filRubro.value = valorActual;
 
         const gestionDiv = document.getElementById('lista-gestion-rubros');
         gestionDiv.innerHTML = "";
-        ['diarios','mensuales','jc'].forEach(tipo => {
+        ['diarios','mensuales','jc', 'dolares'].forEach(tipo => {
             gestionDiv.innerHTML += `<div style="margin-top:10px; font-weight:bold; color:var(--text-muted); font-size:11px;">${tipo.toUpperCase()}</div>`;
             listas[tipo].sort().forEach(item => {
                 gestionDiv.innerHTML += `<div class="config-item"><span>${item}</span><button style="width:auto; padding:5px 10px; background:#fee2e2; color:#ef4444; margin:0; font-size:10px" onclick="eliminarRubro('${tipo}', '${item}')">BORRAR</button></div>`;
@@ -377,7 +414,7 @@
     function generarCheckboxesFiltro() {
         const modalBody = document.getElementById('modal-lista-rubros');
         modalBody.innerHTML = "";
-        const todosLosRubros = [...new Set([...listas.diarios, ...listas.mensuales, ...listas.jc])].sort();
+        const todosLosRubros = [...new Set([...listas.diarios, ...listas.mensuales, ...listas.jc, ...listas.dolares])].sort();
         todosLosRubros.forEach(rubro => {
             modalBody.innerHTML += `<label class="checkbox-item"><input type="checkbox" value="${rubro}" class="filtro-checkbox"> ${rubro}</label>`;
         });
@@ -441,7 +478,7 @@
         const item = document.getElementById(`select-${tab}`).value;
         const nota = document.getElementById(`nota-${tab}`).value;
         const monto = parseFloat(document.getElementById(`monto-${tab}`).value);
-        let cuotas = (tipo === 'MENSUALES' || tipo === 'JC') ? (parseInt(document.getElementById(`cuotas-${tab}`).value) || 1) : 1;
+        let cuotas = (tipo === 'MENSUALES' || tipo === 'JC' || tipo === 'DOLARES') ? (parseInt(document.getElementById(`cuotas-${tab}`).value) || 1) : 1;
         if (!monto || monto <= 0) return alert("MONTO INVÁLIDO");
 
         let mesElegido, anioElegido, fechaStr;
@@ -476,7 +513,10 @@
         document.getElementById(`monto-${tab}`).value = ""; 
         document.getElementById(`nota-${tab}`).value = "";
         
-        let textoWA = `Hola! Acabo de registrar un gasto en la app de la casa\n\nRubro: ${item}\nMonto: $${monto}\nPagó: ${pagador}`;
+        // Identificar si es Dólares para mandar el mensaje de WhatsApp correcto
+        const simboloMoneda = (tipo === 'DOLARES') ? 'U$S' : '$';
+        
+        let textoWA = `Hola! Acabo de registrar un gasto en la app de la casa\n\nRubro: ${item}\nMonto: ${simboloMoneda} ${monto}\nPagó: ${pagador}`;
         if(nota) textoWA += `\nNota: ${nota}`;
         
         const urlWA = `https://wa.me/?text=${encodeURIComponent(textoWA)}`;
@@ -496,7 +536,7 @@
 
     function toggleNota(tipo) {
         const item = document.getElementById(`select-${tipo}`).value;
-        const rubrosNota = ["CASA VARIOS", "REGALOS", "COMIDAS AFUERA", "VARIOS", "GASTOS OCA", "GASTOS ITAU", "GASTOS SANTANDER"];
+        const rubrosNota = ["CASA VARIOS", "REGALOS", "COMIDAS AFUERA", "VARIOS", "GASTOS OCA", "GASTOS ITAU", "GASTOS SANTANDER", "VARIOS USD"];
         document.getElementById(`nota-${tipo}`).style.display = rubrosNota.includes(item) ? "block" : "none";
     }
 
@@ -514,7 +554,9 @@
         document.getElementById('titulo-mes-historial').innerText = `${mesesNombres[fechaHistorialView.getMonth()]} ${fechaHistorialView.getFullYear()}`;
         
         db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
-            let html = ""; let total = 0;
+            let html = ""; 
+            let totalPesos = 0;
+            let totalUSD = 0;
             let pagadosMensuales = []; 
 
             s.forEach(c => {
@@ -526,6 +568,7 @@
                 else if (filtroPrincipal === 'JUAN' && g.pagador === 'JUAN' && g.tipo !== 'JC') pasaGeneral = true;
                 else if (filtroPrincipal === 'TANIA' && g.pagador === 'TANIA' && g.tipo !== 'JC') pasaGeneral = true;
                 else if (filtroPrincipal === 'JC' && g.tipo === 'JC') pasaGeneral = true;
+                else if (filtroPrincipal === 'DOLARES' && g.tipo === 'DOLARES') pasaGeneral = true;
                 
                 else if (filtroPrincipal === 'DIARIOS_JUAN' && g.tipo === 'DIARIOS' && g.pagador === 'JUAN') pasaGeneral = true;
                 else if (filtroPrincipal === 'DIARIOS_TANIA' && g.tipo === 'DIARIOS' && g.pagador === 'TANIA') pasaGeneral = true;
@@ -542,8 +585,13 @@
                 if(rubrosFiltroMultiple.length > 0 && !rubrosFiltroMultiple.includes(g.item)) pasaRubro = false;
 
                 if(pasaGeneral && pasaRubro) {
-                    html += `<div class="historial-item"><div><small>${g.fecha.split('-')[2]}/${g.fecha.split('-')[1]}</small> <b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<small>${g.pagador}</small></div><div style="text-align:right"><b>$${g.monto}</b> <button style="width:auto; padding:5px; background:none; color:red; border:none; cursor:pointer" onclick="eliminarGasto('${g.id}')">✕</button></div></div>`;
-                    total += g.monto;
+                    const esDolar = (g.tipo === 'DOLARES');
+                    const simbolo = esDolar ? 'U$S' : '$';
+                    
+                    html += `<div class="historial-item"><div><small>${g.fecha.split('-')[2]}/${g.fecha.split('-')[1]}</small> <b>${g.item}</b><br>${g.nota ? `<span class="item-nota">${g.nota}</span><br>` : ''}<small>${g.pagador}</small></div><div style="text-align:right"><b>${simbolo} ${g.monto}</b> <button style="width:auto; padding:5px; background:none; color:red; border:none; cursor:pointer" onclick="eliminarGasto('${g.id}')">✕</button></div></div>`;
+                    
+                    if (esDolar) totalUSD += g.monto;
+                    else totalPesos += g.monto;
                 }
 
                 if (g.tipo === 'MENSUALES') pagadosMensuales.push(g.item);
@@ -558,7 +606,8 @@
             }
 
             document.getElementById('lista-historial').innerHTML = html || "<p style='text-align:center; color:#64748b; margin-top:20px'>Sin gastos con estos filtros.</p>";
-            document.getElementById('total-acumulado').innerText = `$${total.toFixed(0)}`;
+            document.getElementById('tot-pesos').innerText = `UYU $${totalPesos.toFixed(0)}`;
+            document.getElementById('tot-usd').innerText = `U$S ${totalUSD.toFixed(2)}`;
         });
     }
 
@@ -569,22 +618,44 @@
         document.getElementById('titulo-mes-balance').innerText = `${mesesNombres[fechaBalanceView.getMonth()]} ${fechaBalanceView.getFullYear()}`;
         db.ref(`gastos_global`).orderByChild('mesAnio').equalTo(mesAnio).once('value', (s) => {
             let j = 0, t = 0, jc = 0;
+            let j_usd = 0, t_usd = 0;
+            
             s.forEach(c => {
                 const g = c.val();
-                if(g.tipo === 'JC') jc += g.monto;
-                else if(g.pagador === 'JUAN') j += g.monto;
-                else if(g.pagador === 'TANIA') t += g.monto;
+                if (g.tipo === 'DOLARES') {
+                    if (g.pagador === 'JUAN') j_usd += g.monto;
+                    else if (g.pagador === 'TANIA') t_usd += g.monto;
+                } else {
+                    if (g.tipo === 'JC') jc += g.monto;
+                    else if (g.pagador === 'JUAN') j += g.monto;
+                    else if (g.pagador === 'TANIA') t += g.monto;
+                }
             });
-            const debe = ((j + t) / 2 - j) + jc;
-            balanceActual = { j, t, jc, deudaJuan: debe, mesAnio };
-            document.getElementById('resumen-balance').innerHTML = `
-                <div class="subtotal-seccion"><span>Juan pagó casa:</span><span>$${j}</span></div>
-                <div class="subtotal-seccion"><span>Tania pagó casa:</span><span>$${t}</span></div>
+            
+            // Calculo Pesos
+            const debePesos = ((j + t) / 2 - j) + jc;
+            // Calculo Dolares
+            const debeUsd = ((j_usd + t_usd) / 2 - j_usd);
+
+            balanceActual = { j, t, jc, deudaJuan: debePesos, j_usd, t_usd, deudaJuanUSD: debeUsd, mesAnio };
+            
+            let htmlBalance = `
+                <div class="subtotal-seccion"><span>Juan pagó casa (Pesos):</span><span>$${j}</span></div>
+                <div class="subtotal-seccion"><span>Tania pagó casa (Pesos):</span><span>$${t}</span></div>
                 <div class="subtotal-seccion" style="background:#e2e8f0"><span>Deuda JC (aplica a Juan):</span><span>$${jc}</span></div>
-                <div class="resultado ${debe > 0 ? 'debe-juan' : 'debe-tania'}">
-                    ${debe > 0 ? `JUAN DEBE A TANIA $${debe.toFixed(0)}` : `TANIA DEBE A JUAN $${Math.abs(debe).toFixed(0)}`}
+                <div class="resultado ${debePesos > 0 ? 'debe-juan' : 'debe-tania'}">
+                    ${debePesos > 0 ? `JUAN DEBE A TANIA $${debePesos.toFixed(0)}` : `TANIA DEBE A JUAN $${Math.abs(debePesos).toFixed(0)}`}
+                </div>
+                
+                <h4 style="margin-top:25px; text-align:center; color:#10b981;">BALANCE EN DÓLARES</h4>
+                <div class="subtotal-seccion" style="border-left-color: #10b981;"><span>Juan pagó (USD):</span><span>U$S ${j_usd}</span></div>
+                <div class="subtotal-seccion" style="border-left-color: #10b981;"><span>Tania pagó (USD):</span><span>U$S ${t_usd}</span></div>
+                <div class="resultado ${debeUsd === 0 ? 'al-dia' : (debeUsd > 0 ? 'debe-juan' : 'debe-tania')}" style="margin-top:10px;">
+                    ${debeUsd === 0 ? 'DÓLARES AL DÍA' : (debeUsd > 0 ? `JUAN DEBE A TANIA U$S ${debeUsd.toFixed(2)}` : `TANIA DEBE A JUAN U$S ${Math.abs(debeUsd).toFixed(2)}`)}
                 </div>
             `;
+            
+            document.getElementById('resumen-balance').innerHTML = htmlBalance;
         });
         cargarCierres();
     }
@@ -631,12 +702,23 @@
                         tituloAmigable = `${mesesNombres[mesIdx]} ${partes[1]}`;
                     }
                 }
+                
+                // Asegurar que si el registro es viejo y no tenia dolares, diga 0
+                let deudaUsd = r.deudaJuanUSD || 0;
+                let j_usd = r.j_usd || 0;
+                let t_usd = r.t_usd || 0;
 
                 h += `<div class="card" style="font-size:12px; padding:12px; margin-bottom:8px;">
                     <b style="font-size:14px; color:var(--juan-dark)">${tituloAmigable}</b><br>
-                    J: $${r.j} - T: $${r.t}<br>
-                    <div style="margin-top:5px; font-weight:bold; color:${r.deudaJuan > 0 ? '#b91c1c' : '#9d174d'}">
-                        ${r.deudaJuan > 0 ? 'Juan debió' : 'Tania debió'}: $${Math.abs(r.deudaJuan).toFixed(0)}
+                    Pesos: J $${r.j} - T $${r.t}<br>
+                    Dólares: J U$S${j_usd} - T U$S${t_usd}<br>
+                    <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #cbd5e1;">
+                        <div style="font-weight:bold; color:${r.deudaJuan > 0 ? '#b91c1c' : '#9d174d'}">
+                            PESOS: ${r.deudaJuan > 0 ? 'Juan debió' : 'Tania debió'} $${Math.abs(r.deudaJuan).toFixed(0)}
+                        </div>
+                        <div style="margin-top:3px; font-weight:bold; color:${deudaUsd === 0 ? '#15803d' : (deudaUsd > 0 ? '#b91c1c' : '#9d174d')}">
+                            DÓLARES: ${deudaUsd === 0 ? 'Saldado (U$S 0)' : (deudaUsd > 0 ? 'Juan debió' : 'Tania debió')} U$S ${Math.abs(deudaUsd).toFixed(2)}
+                        </div>
                     </div>
                 </div>`;
             });
