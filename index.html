@@ -8,8 +8,10 @@
     <meta name="theme-color" content="#667eea">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Gastos Casa">
+    <!-- Ajusta el nombre de la imagen aquí abajo si no se llama logo-oficial.png -->
     <link rel="icon" sizes="192x192" href="logo-oficial.png">
     <link rel="apple-touch-icon" href="logo-oficial.png">
+    <link rel="manifest" href="manifest.json">
     
     <!-- Firebase SDK Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -381,7 +383,6 @@
             }
         });
 
-        // Asegurar que el select mantiene sus opciones correctas (por si se recarga)
         const filRubro = document.getElementById('filtro-principal');
         const valorActual = filRubro.value || 'TODO';
         filRubro.innerHTML = `
@@ -513,7 +514,6 @@
         document.getElementById(`monto-${tab}`).value = ""; 
         document.getElementById(`nota-${tab}`).value = "";
         
-        // Identificar si es Dólares para mandar el mensaje de WhatsApp correcto
         const simboloMoneda = (tipo === 'DOLARES') ? 'U$S' : '$';
         
         let textoWA = `Hola! Acabo de registrar un gasto en la app de la casa\n\nRubro: ${item}\nMonto: ${simboloMoneda} ${monto}\nPagó: ${pagador}`;
@@ -632,9 +632,7 @@
                 }
             });
             
-            // Calculo Pesos
             const debePesos = ((j + t) / 2 - j) + jc;
-            // Calculo Dolares
             const debeUsd = ((j_usd + t_usd) / 2 - j_usd);
 
             balanceActual = { j, t, jc, deudaJuan: debePesos, j_usd, t_usd, deudaJuanUSD: debeUsd, mesAnio };
@@ -703,7 +701,6 @@
                     }
                 }
                 
-                // Asegurar que si el registro es viejo y no tenia dolares, diga 0
                 let deudaUsd = r.deudaJuanUSD || 0;
                 let j_usd = r.j_usd || 0;
                 let t_usd = r.t_usd || 0;
